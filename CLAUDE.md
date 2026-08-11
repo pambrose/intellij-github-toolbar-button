@@ -55,11 +55,16 @@ Every `uses:` is pinned to a 40-character commit SHA with the version in a trail
 mutable `@v6` tag can be repointed at new code, and `release.yml` holds `contents: write`. Don't
 "tidy" these back into tags. `.github/dependabot.yml` updates the SHA and the comment together.
 
-`release.yml` only ever runs on a tag, so nothing exercises it between releases and a mistake in it
-surfaces at the worst moment. Lint it before trusting a change:
-[actionlint](https://github.com/rhysd/actionlint) already caught one bug here — the `secrets` context
-is **not** available in a step-level `if`, which is why credential presence is turned into a step
-*output* and tested through that instead.
+`release.yml` only ever runs on a tag, so nothing else exercises it between releases and a mistake in
+it surfaces at the worst moment. `build.yml` therefore runs
+[actionlint](https://github.com/rhysd/actionlint) over both workflows on every PR. It already caught
+one bug here — the `secrets` context is **not** available in a step-level `if`, which is why
+credential presence is turned into a step *output* and tested through that instead.
+
+actionlint is downloaded by pinned version and checked against a SHA-256 rather than pulled through
+a third-party action or an install script piped into a shell, which would undercut the point of
+SHA-pinning every `uses:` above it. Bumping the version means bumping the checksum with it; both
+live in that step's `env`.
 
 ### Marketplace publishing
 
