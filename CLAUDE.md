@@ -163,6 +163,14 @@ dependency and stays directly unit-testable:
   disabled unless `GitHubRepoLocator.pushedBranchOf` returns a branch, which it only does when the
   branch tracks an upstream: a branch that was never pushed 404s on GitHub. Don't relax this to
   "any current branch" — the point is not opening a dead page.
+- **`GitHubRemotesActionGroup`** — the one dynamic group here: its children are built per
+  invocation because the remotes are unknown until a project is open, so they cannot be declared in
+  `plugin.xml`. `GitHubRepoLocator.gitHubRemotes` supplies them, `origin` first. The group hides
+  itself below two remotes, since offering a choice of one is noise. Everything else in the plugin
+  resolves a *single* URL preferring `origin`; this exists because that silently hides `upstream` in
+  a fork.
+- **`CopyGitHubUrlAction`** — same resolution as `OpenOnGitHubAction`, but writes to the clipboard
+  via `CopyPasteManager.copyTextToClipboard` instead of opening a browser.
 - **`OpenGitHubDestinationAction`** — holds all the action behaviour, parameterized by a
   `GitHubDestination`. Its subclasses (`OpenOnGitHubAction` and the four in
   `GitHubDestinationActions.kt`) exist *only* to bind a destination: the platform instantiates

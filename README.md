@@ -24,6 +24,10 @@ button that takes you to the repository's home page.
   **Pull Requests**, **Issues**, **Actions**, and **Releases** for the same repository. Each is a
   separate command, so any of them can take a keyboard shortcut. Right-clicking a file picks the
   Git root that owns it, which matters in a project with nested roots.
+- **Copy instead of open.** **Copy GitHub URL** puts the repository URL on the clipboard, for
+  pasting into a review or a chat message.
+- **Forks can reach upstream.** When a repository has more than one GitHub remote, an **Open Other
+  Remote** submenu lists them all; `origin` is still what the button itself follows.
 - **Straight from a branch to its pull request.** **Open Pull Request for Current Branch** goes to
   GitHub's create-PR page for the branch you are on, and **Open Current Branch on GitHub** opens its
   tree view. Both stay disabled until the branch tracks an upstream — an unpushed branch has no page
