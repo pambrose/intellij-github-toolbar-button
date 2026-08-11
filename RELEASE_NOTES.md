@@ -9,30 +9,47 @@
 
 # v1.1.0
 
-Adds four more places to jump to on GitHub, and support for self-hosted GitHub Enterprise.
+Everything in this release is reachable from a new **GitHub** submenu, in the VCS Operations popup
+(<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>V</kbd>) and the Project View right-click menu. The toolbar
+button is unchanged: one click, repository home page.
 
-## More than the home page
+## Go somewhere other than the home page
 
-A **GitHub** submenu now appears in the VCS Operations popup (<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>V</kbd>)
-and the Project View right-click menu, opening the repository's **Pull Requests**, **Issues**,
-**Actions**, and **Releases** as well as its home page.
+**Pull Requests**, **Issues**, **Actions**, and **Releases** for the same repository. Each is a
+separate command, so any of them can take its own keyboard shortcut under **Settings → Keymap**.
 
-Each is a separate command, so any of them can be given its own keyboard shortcut under
-**Settings → Keymap**. Right-clicking a file picks the Git root that owns it, which matters in a
-project with nested roots.
+## Go straight from a branch to its pull request
 
-The toolbar button itself is unchanged: one click, repository home page.
+**Open Pull Request for Current Branch** opens GitHub's create-PR page for the branch you are on —
+push, then jump straight to opening the PR. **Open Current Branch on GitHub** opens its tree view.
+
+Both stay disabled until the branch tracks an upstream, because a branch that has never been pushed
+has no page on GitHub. The tooltip says which applies: whether you are on a detached HEAD, or simply
+have not pushed yet.
+
+## Copy instead of open
+
+**Copy GitHub URL** puts the repository URL on the clipboard rather than opening a browser, for
+pasting into a review or a chat message. It resolves the URL exactly as the button does.
+
+## Forks can reach upstream
+
+When a repository has more than one GitHub remote, an **Open Other Remote** submenu lists them all.
+Previously `origin` always won, which left a fork's `upstream` unreachable. The button still follows
+`origin`; this adds a path to the others rather than making the choice ambiguous.
+
+Repositories with a single remote — almost all of them — see nothing new.
 
 ## GitHub Enterprise
 
 Self-hosted installs are now supported. Add your host under **Settings → Tools → GitHub Toolbar
-Button**, one per line — pasting a full clone URL works too, since only the host is kept.
+Button**, one per line; pasting a full clone URL works too, since only the host is kept.
 
 Configured hosts are matched **exactly**, the same way `github.com` always has been. Adding
 `github.mycompany.com` recognizes that host and nothing else: not `evilgithub.mycompany.com`, and
 not `github.mycompany.com.evil.example`. The allowlist widens which hosts are accepted without
-weakening how any of them is checked. `github.com` stays recognized no matter what you configure, so
-a mistake in that field can never take the default away.
+weakening how any of them is checked, and `github.com` stays recognized no matter what you
+configure, so a mistake in that field can never take the default away.
 
 Enterprise repositories keep their own host in the opened URL —
 `https://github.mycompany.com/owner/repo`.
@@ -43,9 +60,9 @@ Enterprise repositories keep their own host in the opened URL —
   with the bundled GitHub plugin's own differently-behaving action of that name — that one opens the
   current *file* at the current revision. Its action ID is unchanged, so **existing keyboard
   shortcuts and toolbar customizations keep working**; only the name you search for has changed.
-- **In menus, the command now hides** when the project has no GitHub repository, instead of
-  appearing permanently greyed out. On a toolbar it still stays visible but disabled, so the button
-  never vacates its slot and neighbouring icons never shift between projects.
+- **In menus, commands now hide** when the project has no GitHub repository, instead of appearing
+  permanently greyed out. On a toolbar the button still stays visible but disabled, so it never
+  vacates its slot and neighbouring icons never shift between projects.
 
 ## Installation
 
