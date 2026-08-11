@@ -43,6 +43,22 @@ jobs:
       - name: Check wrapper matches the catalog
         run: make check-wrapper
 
+      # release.yml only ever runs on a tag, so without this nothing checks it between releases —
+      # which is how a `secrets` context in a step `if`, invalid and fatal at release time, once got
+      # as far as being committed. Pinned by version and checksum rather than pulled through a
+      # third-party action, to match how the `uses:` refs above are pinned.
+      - name: Lint workflows
+        env:
+          ACTIONLINT_VERSION: 1.7.12
+          ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+        run: |
+          curl -fsSL -o actionlint.tar.gz \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          echo "${ACTIONLINT_SHA256}  actionlint.tar.gz" | sha256sum -c -
+          tar xzf actionlint.tar.gz actionlint
+          ./actionlint -color
+          rm -f actionlint actionlint.tar.gz
+
       # Before the build: a formatting violation should be reported in seconds rather than after a
       # full IDE download and verifier run.
       - name: Check formatting
