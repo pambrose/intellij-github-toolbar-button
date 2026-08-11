@@ -1,9 +1,11 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
+import org.jetbrains.changelog.Changelog
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.intellij.platform)
     alias(libs.plugins.ben.manes.versions)
+    alias(libs.plugins.changelog)
 }
 
 // `group` and `version` are set in gradle.properties.
@@ -39,6 +41,20 @@ intellijPlatform {
             sinceBuild = "252"
             // Open-ended: the APIs used here are stable, so don't lock users out of newer IDEs.
             untilBuild = provider { null }
+        }
+
+        // The plugin manager renders change notes as HTML with a small allowed tag set, so the
+        // Markdown in CHANGELOG.md has to be converted rather than pasted. Sourcing them here means
+        // the notes users see are the same text as the changelog, maintained once.
+        changeNotes = providers.gradleProperty("version").map { pluginVersion ->
+            with(changelog) {
+                renderItem(
+                    (getOrNull(pluginVersion) ?: getUnreleased())
+                        .withHeader(false)
+                        .withEmptySections(false),
+                    Changelog.OutputType.HTML,
+                )
+            }
         }
     }
 }
