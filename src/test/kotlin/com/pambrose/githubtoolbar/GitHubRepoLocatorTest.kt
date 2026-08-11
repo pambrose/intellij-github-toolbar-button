@@ -1,0 +1,146 @@
+package com.pambrose.githubtoolbar
+
+import com.intellij.openapi.vfs.VirtualFile
+import git4idea.repo.GitRemote
+import git4idea.repo.GitRepository
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.mockk
+
+class GitHubRepoLocatorTest : StringSpec() {
+
+    private fun remote(remoteName: String, vararg remoteUrls: String): GitRemote =
+        mockk<GitRemote>().also {
+            every { it.name } returns remoteName
+            every { it.urls } returns remoteUrls.toList()
+        }
+
+    private fun repo(rootPath: String = "/project", vararg remotes: GitRemote): GitRepository {
+        val rootFile = mockk<VirtualFile>().also { every { it.path } returns rootPath }
+        return mockk<GitRepository>().also {
+            every { it.root } returns rootFile
+            every { it.remotes } returns remotes.toList()
+        }
+    }
+
+    private fun fileAt(filePath: String): VirtualFile =
+        mockk<VirtualFile>().also { every { it.path } returns filePath }
+
+    init {
+        "prefers the origin remote over other GitHub remotes" {
+            val repository = repo(
+                "/project",
+                remote("upstream", "https://github.com/upstream-owner/repo.git"),
+                remote("origin", "https://github.com/my-owner/repo.git"),
+            )
+
+            GitHubRepoLocator.repoUrlOf(repository) shouldBe "https://github.com/my-owner/repo"
+        }
+
+        "falls back to another GitHub remote when origin is not on GitHub" {
+            val repository = repo(
+                "/project",
+                remote("origin", "https://gitlab.com/my-owner/repo.git"),
+                remote("upstream", "https://github.com/upstream-owner/repo.git"),
+            )
+
+            GitHubRepoLocator.repoUrlOf(repository) shouldBe "https://github.com/upstream-owner/repo"
+        }
+
+        "uses the only remote when there is no origin" {
+            val repository = repo("/project", remote("fork", "git@github.com:someone/repo.git"))
+
+            GitHubRepoLocator.repoUrlOf(repository) shouldBe "https://github.com/someone/repo"
+        }
+
+        "checks every url configured on a remote" {
+            val repository = repo(
+                "/project",
+                remote("origin", "https://example.com/mirror.git", "https://github.com/owner/repo.git"),
+            )
+
+            GitHubRepoLocator.repoUrlOf(repository) shouldBe "https://github.com/owner/repo"
+        }
+
+        "returns null when the repository has no remotes" {
+            GitHubRepoLocator.repoUrlOf(repo("/project")) shouldBe null
+        }
+
+        "returns null when no remote points at GitHub" {
+            val repository = repo(
+                "/project",
+                remote("origin", "https://gitlab.com/owner/repo.git"),
+                remote("backup", "https://bitbucket.org/owner/repo.git"),
+            )
+
+            GitHubRepoLocator.repoUrlOf(repository) shouldBe null
+        }
+
+        "picks the repository whose root contains the context file" {
+            val alpha = repo("/code/alpha", remote("origin", "https://github.com/owner/alpha.git"))
+            val beta = repo("/code/beta", remote("origin", "https://github.com/owner/beta.git"))
+
+            val selected = GitHubRepoLocator.selectRepository(listOf(alpha, beta), fileAt("/code/beta/src/Main.kt"))
+
+            selected shouldBe beta
+        }
+
+        "picks the innermost repository when roots are nested" {
+            val outer = repo("/code/outer", remote("origin", "https://github.com/owner/outer.git"))
+            val inner = repo("/code/outer/inner", remote("origin", "https://github.com/owner/inner.git"))
+
+            val selected =
+                GitHubRepoLocator.selectRepository(listOf(outer, inner), fileAt("/code/outer/inner/src/Main.kt"))
+
+            selected shouldBe inner
+        }
+
+        "does not treat a sibling directory with a shared prefix as a match" {
+            val alpha = repo("/code/alpha", remote("origin", "https://github.com/owner/alpha.git"))
+            val alphaTwo = repo("/code/alpha-two", remote("origin", "https://github.com/owner/alpha-two.git"))
+
+            val selected =
+                GitHubRepoLocator.selectRepository(listOf(alpha, alphaTwo), fileAt("/code/alpha-two/src/Main.kt"))
+
+            selected shouldBe alphaTwo
+        }
+
+        "falls back to the first repository when the context file is outside every root" {
+            val alpha = repo("/code/alpha", remote("origin", "https://github.com/owner/alpha.git"))
+            val beta = repo("/code/beta", remote("origin", "https://github.com/owner/beta.git"))
+
+            val selected = GitHubRepoLocator.selectRepository(listOf(alpha, beta), fileAt("/elsewhere/Main.kt"))
+
+            selected shouldBe alpha
+        }
+
+        "falls back to the first repository when there is no context file" {
+            val alpha = repo("/code/alpha", remote("origin", "https://github.com/owner/alpha.git"))
+            val beta = repo("/code/beta", remote("origin", "https://github.com/owner/beta.git"))
+
+            GitHubRepoLocator.selectRepository(listOf(alpha, beta), null) shouldBe alpha
+        }
+
+        "returns null when there are no repositories at all" {
+            GitHubRepoLocator.selectRepository(emptyList(), null) shouldBe null
+        }
+
+        "explains that the project has no Git repository" {
+            GitHubRepoLocator.unavailableReason(emptyList()) shouldBe
+                "This project has no Git repository"
+        }
+
+        "explains that the repository has no remotes" {
+            GitHubRepoLocator.unavailableReason(listOf(repo("/project"))) shouldBe
+                "This Git repository has no remotes"
+        }
+
+        "explains that no remote is on GitHub" {
+            val repository = repo("/project", remote("origin", "https://gitlab.com/owner/repo.git"))
+
+            GitHubRepoLocator.unavailableReason(listOf(repository)) shouldBe
+                "No github.com remote found"
+        }
+    }
+}

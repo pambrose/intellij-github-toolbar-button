@@ -1,0 +1,32 @@
+<idea-plugin>
+    <id>com.pambrose.github-toolbar-button</id>
+    <name>GitHub Toolbar Button</name>
+    <vendor email="pambrose@mac.com">Paul Ambrose</vendor>
+
+    <description><![CDATA[
+        Adds a button to the main toolbar that opens the current project's GitHub repository
+        page in your default browser.
+        <p>
+        The button is present in every project. When the project has no Git repository, no
+        remote, or a remote that is not on github.com, the button is disabled and its tooltip
+        explains why.
+        </p>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>Git4Idea</depends>
+
+    <actions>
+        <action id="com.pambrose.githubtoolbar.OpenOnGitHub"
+                class="com.pambrose.githubtoolbar.OpenOnGitHubAction"
+                text="Open on GitHub"
+                description="Open this project's GitHub repository page in the default browser"
+                icon="AllIcons.Vcs.Vendors.Github">
+            <!-- New UI main toolbar, end of the left cluster (after the project and branch
+                 widgets). Note the lowercase 'b' in MainToolbar*. -->
+            <add-to-group group-id="MainToolbarLeft" anchor="last"/>
+            <!-- Classic UI main toolbar. Note the capital 'B' in MainToolBar. -->
+            <add-to-group group-id="MainToolBar" anchor="last"/>
+        </action>
+    </actions>
+</idea-plugin>

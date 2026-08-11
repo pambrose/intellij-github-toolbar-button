@@ -1,0 +1,20 @@
+[versions]
+kotlin = "2.4.10"
+gradle-wrapper = "9.7.0"
+jvm = "21"
+intellijPlatformPlugin = "2.18.1"
+# The IntelliJ IDEA Community build compiled and tested against.
+intellijIdea = "2025.2"
+kotest = "6.2.3"
+mockk = "1.14.11"
+benManesVersions = "0.61.0"
+
+[libraries]
+kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+intellij-platform = { id = "org.jetbrains.intellij.platform", version.ref = "intellijPlatformPlugin" }
+ben-manes-versions = { id = "io.github.ben-manes.versions", version.ref = "benManesVersions" }
