@@ -8,18 +8,39 @@
         page in your default browser.
         <p>
         The button is present in every project. When the project has no Git repository, no
-        remote, or a remote that is not on github.com, the button is disabled and its tooltip
-        explains why.
+        remote, or a remote that is not on a recognized GitHub host, the button is disabled and
+        its tooltip explains why.
+        </p>
+        <p>
+        A <b>GitHub</b> submenu in the VCS Operations popup and the Project View context menu
+        also opens the repository's pull requests, issues, Actions runs, and releases. Each is a
+        separate command, so any of them can be bound to a keyboard shortcut.
+        </p>
+        <p>
+        Self-hosted GitHub Enterprise hosts can be added under
+        <b>Settings | Tools | GitHub Toolbar Button</b>. Hosts are matched exactly, so adding one
+        recognizes that host and not lookalikes of it.
         </p>
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
     <depends>Git4Idea</depends>
 
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationService serviceImplementation="com.pambrose.githubtoolbar.GitHubHostSettings"/>
+        <applicationConfigurable parentId="tools"
+                                 instance="com.pambrose.githubtoolbar.GitHubHostConfigurable"
+                                 id="com.pambrose.githubtoolbar.settings"
+                                 displayName="GitHub Toolbar Button"/>
+    </extensions>
+
     <actions>
+        <!-- "Open Repository on GitHub", not "Open on GitHub": the bundled GitHub plugin's
+             Github.Open.In.Browser group already presents itself under that exact name in Find
+             Action, and it does something different (current file at the current revision). -->
         <action id="com.pambrose.githubtoolbar.OpenOnGitHub"
                 class="com.pambrose.githubtoolbar.OpenOnGitHubAction"
-                text="Open on GitHub"
+                text="Open Repository on GitHub"
                 description="Open this project's GitHub repository page in the default browser"
                 icon="AllIcons.Vcs.Vendors.Github">
             <!-- New UI main toolbar, end of the left cluster (after the project and branch
@@ -28,5 +49,46 @@
             <!-- Classic UI main toolbar. Note the capital 'B' in MainToolBar. -->
             <add-to-group group-id="MainToolBar" anchor="last"/>
         </action>
+
+        <action id="com.pambrose.githubtoolbar.OpenPullRequests"
+                class="com.pambrose.githubtoolbar.OpenGitHubPullRequestsAction"
+                text="Open Pull Requests on GitHub"
+                description="Open this project's GitHub pull requests in the default browser"/>
+
+        <action id="com.pambrose.githubtoolbar.OpenIssues"
+                class="com.pambrose.githubtoolbar.OpenGitHubIssuesAction"
+                text="Open Issues on GitHub"
+                description="Open this project's GitHub issues in the default browser"/>
+
+        <action id="com.pambrose.githubtoolbar.OpenActions"
+                class="com.pambrose.githubtoolbar.OpenGitHubActionsAction"
+                text="Open Actions on GitHub"
+                description="Open this project's GitHub Actions runs in the default browser"/>
+
+        <action id="com.pambrose.githubtoolbar.OpenReleases"
+                class="com.pambrose.githubtoolbar.OpenGitHubReleasesAction"
+                text="Open Releases on GitHub"
+                description="Open this project's GitHub releases in the default browser"/>
+
+        <!-- A submenu rather than five flat entries, which would swamp the host menus. Each action
+             keeps a self-describing name so it still reads correctly in Find Action and Keymap,
+             where the surrounding submenu is not visible. -->
+        <group id="com.pambrose.githubtoolbar.DestinationsMenu"
+               text="GitHub"
+               popup="true"
+               icon="AllIcons.Vcs.Vendors.Github">
+            <reference ref="com.pambrose.githubtoolbar.OpenOnGitHub"/>
+            <separator/>
+            <reference ref="com.pambrose.githubtoolbar.OpenPullRequests"/>
+            <reference ref="com.pambrose.githubtoolbar.OpenIssues"/>
+            <reference ref="com.pambrose.githubtoolbar.OpenActions"/>
+            <reference ref="com.pambrose.githubtoolbar.OpenReleases"/>
+
+            <!-- VCS Operations popup: project-scoped Git actions live here. -->
+            <add-to-group group-id="Vcs.Operations.Popup" anchor="last"/>
+            <!-- Project view: the right-clicked file selects the owning Git root, which is what
+                 makes this meaningful in a project with nested roots. -->
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+        </group>
     </actions>
 </idea-plugin>

@@ -140,5 +140,95 @@ class GitHubUrlParserTest : StringSpec() {
         "rejects a local filesystem remote" {
             GitHubUrlParser.toRepoUrl("/Users/someone/git/repo") shouldBe null
         }
+
+        // ---- GitHub Enterprise: additional hosts supplied by the user ----
+
+        "accepts a configured enterprise host and keeps that host in the result" {
+            GitHubUrlParser.toRepoUrl(
+                "https://github.mycompany.com/owner/repo.git",
+                setOf("github.mycompany.com"),
+            ) shouldBe "https://github.mycompany.com/owner/repo"
+        }
+
+        "accepts an scp-style remote on a configured enterprise host" {
+            GitHubUrlParser.toRepoUrl(
+                "git@github.mycompany.com:owner/repo.git",
+                setOf("github.mycompany.com"),
+            ) shouldBe "https://github.mycompany.com/owner/repo"
+        }
+
+        "strips credentials from an enterprise remote too" {
+            GitHubUrlParser.toRepoUrl(
+                "https://user:token@github.mycompany.com/owner/repo.git",
+                setOf("github.mycompany.com"),
+            ) shouldBe "https://github.mycompany.com/owner/repo"
+        }
+
+        // The whole point of the allowlist is that it adds hosts without weakening the match.
+        "a configured host does not admit its own lookalikes" {
+            val hosts = setOf("github.mycompany.com")
+            GitHubUrlParser.toRepoUrl("https://evilgithub.mycompany.com/owner/repo.git", hosts) shouldBe null
+            GitHubUrlParser.toRepoUrl("https://github.mycompany.com.evil.example/owner/repo.git", hosts) shouldBe null
+            GitHubUrlParser.toRepoUrl("https://mycompany.com/owner/repo.git", hosts) shouldBe null
+        }
+
+        "configuring a host does not silently drop github.com itself" {
+            GitHubUrlParser.toRepoUrl(
+                "https://github.com/owner/repo.git",
+                GitHubUrlParser.DEFAULT_HOSTS + "github.mycompany.com",
+            ) shouldBe "https://github.com/owner/repo"
+        }
+
+        "an enterprise host is matched case-insensitively" {
+            GitHubUrlParser.toRepoUrl(
+                "https://GitHub.MyCompany.COM/Owner/Repo.git",
+                setOf("github.mycompany.com"),
+            ) shouldBe "https://github.mycompany.com/Owner/Repo"
+        }
+
+        // www.github.com is a real alias for github.com; www.<enterprise> is not known to be one,
+        // so it is left alone rather than guessed at.
+        "only github.com has its www alias folded away" {
+            GitHubUrlParser.toRepoUrl(
+                "https://www.github.mycompany.com/owner/repo.git",
+                setOf("www.github.mycompany.com"),
+            ) shouldBe "https://www.github.mycompany.com/owner/repo"
+        }
+
+        "an empty host set accepts nothing" {
+            GitHubUrlParser.toRepoUrl("https://github.com/owner/repo.git", emptySet()) shouldBe null
+        }
+
+        // ---- Normalizing what the user typed into the settings field ----
+
+        "normalizes a pasted URL down to its host" {
+            GitHubUrlParser.normalizeHost("https://github.mycompany.com/owner/repo") shouldBe
+                "github.mycompany.com"
+        }
+
+        "normalizes casing, surrounding space, credentials, and a port" {
+            GitHubUrlParser.normalizeHost("  GitHub.MyCompany.COM  ") shouldBe "github.mycompany.com"
+            GitHubUrlParser.normalizeHost("git@github.mycompany.com") shouldBe "github.mycompany.com"
+            GitHubUrlParser.normalizeHost("github.mycompany.com:8443") shouldBe "github.mycompany.com"
+            GitHubUrlParser.normalizeHost("ssh://git@github.mycompany.com:22/owner/repo.git") shouldBe
+                "github.mycompany.com"
+        }
+
+        "rejects host input that could never match anyway" {
+            GitHubUrlParser.normalizeHost("") shouldBe null
+            GitHubUrlParser.normalizeHost("   ") shouldBe null
+            GitHubUrlParser.normalizeHost("/") shouldBe null
+            GitHubUrlParser.normalizeHost("has space.com") shouldBe null
+            GitHubUrlParser.normalizeHost("-leading.dash.com") shouldBe null
+            GitHubUrlParser.normalizeHost("trailing.dot.") shouldBe null
+            GitHubUrlParser.normalizeHost("*.wildcard.com") shouldBe null
+        }
+
+        "a normalized host round-trips into a working allowlist entry" {
+            val host = GitHubUrlParser.normalizeHost("https://GitHub.MyCompany.com/")
+            host shouldBe "github.mycompany.com"
+            GitHubUrlParser.toRepoUrl("git@github.mycompany.com:owner/repo.git", setOfNotNull(host)) shouldBe
+                "https://github.mycompany.com/owner/repo"
+        }
     }
 }

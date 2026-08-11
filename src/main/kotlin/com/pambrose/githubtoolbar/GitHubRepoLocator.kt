@@ -33,18 +33,31 @@ import git4idea.repo.GitRepositoryManager
 object GitHubRepoLocator {
     private const val ORIGIN = "origin"
 
-    /** Resolves the GitHub page for [project], or `null` if there is none to open. */
-    fun locate(project: Project, contextFile: VirtualFile?): String? {
+    /**
+     * Resolves the GitHub page for [project], or `null` if there is none to open.
+     *
+     * [allowedHosts] is passed in rather than read from [GitHubHostSettings] here, so this object
+     * needs no running Application and stays unit-testable with nothing but mocked git4idea types.
+     * Production callers pass the configured set; the default covers github.com only.
+     */
+    fun locate(
+        project: Project,
+        contextFile: VirtualFile?,
+        allowedHosts: Set<String> = GitHubUrlParser.DEFAULT_HOSTS,
+    ): String? {
         val repositories = GitRepositoryManager.getInstance(project).repositories
         val repository = selectRepository(repositories, contextFile) ?: return null
-        return repoUrlOf(repository)
+        return repoUrlOf(repository, allowedHosts)
     }
 
     /** Resolves the GitHub page for a single repository, preferring the `origin` remote. */
-    fun repoUrlOf(repository: GitRepository): String? {
+    fun repoUrlOf(
+        repository: GitRepository,
+        allowedHosts: Set<String> = GitHubUrlParser.DEFAULT_HOSTS,
+    ): String? {
         val remotes = repository.remotes
         val origin = remotes.firstOrNull { it.name == ORIGIN }
-        return origin?.gitHubUrl() ?: remotes.firstNotNullOfOrNull { it.gitHubUrl() }
+        return origin?.gitHubUrl(allowedHosts) ?: remotes.firstNotNullOfOrNull { it.gitHubUrl(allowedHosts) }
     }
 
     /** Picks the repository owning [contextFile], falling back to the first one. */
@@ -71,7 +84,8 @@ object GitHubRepoLocator {
             else -> "No github.com remote found"
         }
 
-    private fun GitRemote.gitHubUrl(): String? = urls.firstNotNullOfOrNull(GitHubUrlParser::toRepoUrl)
+    private fun GitRemote.gitHubUrl(allowedHosts: Set<String>): String? =
+        urls.firstNotNullOfOrNull { GitHubUrlParser.toRepoUrl(it, allowedHosts) }
 
     /** Compares whole path segments, so `/code/alpha-two` is not treated as being under `/code/alpha`. */
     private fun String.isUnder(root: String): Boolean = this == root || startsWith("$root/")

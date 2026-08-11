@@ -17,6 +17,11 @@ button that takes you to the repository's home page.
 
 - **Always visible.** The button occupies its toolbar slot in every project, so its position
   never shifts around on you.
+- **More than the home page.** A **GitHub** submenu in the VCS Operations popup
+  (<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>V</kbd>) and the Project View right-click menu also opens
+  **Pull Requests**, **Issues**, **Actions**, and **Releases** for the same repository. Each is a
+  separate command, so any of them can take a keyboard shortcut. Right-clicking a file picks the
+  Git root that owns it, which matters in a project with nested roots.
 - **Disabled when it can't help.** In a project with no Git repository, no remote, or a
   non-GitHub remote, the button greys out and its tooltip explains why. It never fails silently
   and never opens a dialog you didn't ask for.
@@ -41,8 +46,16 @@ Every common remote URL form is recognized:
 Credentials embedded in a remote URL (`https://user:token@github.com/...`) are stripped before
 the URL reaches your browser.
 
-Only `github.com` is treated as GitHub. Self-hosted GitHub Enterprise remotes are not detected
-and will leave the button disabled.
+### GitHub Enterprise
+
+Only `github.com` is recognized out of the box. For a self-hosted install, add its host under
+**Settings → Tools → GitHub Toolbar Button**, one per line — pasting a full clone URL works too,
+since only the host is kept. Configured hosts are matched exactly, the same way `github.com` is, so
+adding `github.mycompany.com` recognizes that host and nothing else: not `evilgithub.mycompany.com`,
+and not `github.mycompany.com.evil.example`. `github.com` stays recognized regardless, so a mistake
+in this field can never take the default away.
+
+Enterprise repository URLs keep their own host — `https://github.mycompany.com/owner/repo`.
 
 ## Requirements
 
@@ -89,6 +102,11 @@ repository page opens in your default browser.
 
 If the button is greyed out, hover it: the tooltip states whether the project has no Git
 repository, no remote, or a remote that isn't on `github.com`.
+
+The command is named **Open Repository on GitHub** — distinct from the bundled GitHub plugin's
+"Open on GitHub", which opens the current *file* at the current revision. Bind it to a keyboard
+shortcut under **Settings → Keymap** by searching for that name, and move the toolbar button itself
+via **Settings → Appearance & Behavior → Menus and Toolbars → Main Toolbar**.
 
 ## Development
 
