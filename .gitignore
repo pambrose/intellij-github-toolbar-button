@@ -45,3 +45,9 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### Plugin signing material — never commit these
+*.pem
+*.crt
+*.p12
+*.key
