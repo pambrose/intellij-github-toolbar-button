@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.intellij.platform)
     alias(libs.plugins.ben.manes.versions)
     alias(libs.plugins.changelog)
+    alias(libs.plugins.kotlinter)
 }
 
 // `group` and `version` are set in gradle.properties.

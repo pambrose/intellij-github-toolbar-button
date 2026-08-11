@@ -33,7 +33,6 @@ import javax.swing.JPanel
  * which the preview label makes visible before they commit to it.
  */
 class GitHubHostConfigurable : Configurable {
-
     private val hostsField = JBTextArea(6, 40)
     private val preview = JBLabel()
 

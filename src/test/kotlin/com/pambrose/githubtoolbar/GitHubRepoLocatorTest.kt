@@ -27,7 +27,6 @@ import io.mockk.every
 import io.mockk.mockk
 
 class GitHubRepoLocatorTest : StringSpec() {
-
     private fun remote(remoteName: String, vararg remoteUrls: String): GitRemote =
         mockk<GitRemote>().also {
             every { it.name } returns remoteName

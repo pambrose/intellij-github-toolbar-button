@@ -9,6 +9,7 @@ kotest = "6.2.3"
 mockk = "1.14.11"
 benManesVersions = "0.61.0"
 changelog = "2.5.0"
+kotlinter = "5.7.0"
 
 [libraries]
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
@@ -20,3 +21,4 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 intellij-platform = { id = "org.jetbrains.intellij.platform", version.ref = "intellijPlatformPlugin" }
 ben-manes-versions = { id = "io.github.ben-manes.versions", version.ref = "benManesVersions" }
 changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }
+kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinter" }

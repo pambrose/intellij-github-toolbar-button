@@ -1,5 +1,5 @@
 .PHONY: help build tests test-one clean run dist verify check versions check-wrapper \
-        upgrade-wrapper changelog patch-changelog all _require-gradle-version
+        upgrade-wrapper changelog patch-changelog lint format all _require-gradle-version
 .DEFAULT_GOAL := help
 
 GRADLE := ./gradlew
@@ -42,8 +42,14 @@ dist: ## Build the installable plugin ZIP
 verify: ## Check binary compatibility with the supported IDE range
 	$(GRADLE) verifyPlugin
 
-check: check-wrapper ## Run the tests and the plugin verifier
-	$(GRADLE) test verifyPlugin
+check: check-wrapper ## Run ktlint, the tests, and the plugin verifier
+	$(GRADLE) lintKotlin test verifyPlugin
+
+lint: ## Report ktlint violations
+	$(GRADLE) lintKotlin
+
+format: ## Fix the ktlint violations that can be fixed automatically
+	$(GRADLE) formatKotlin
 
 versions:  ## Check for newer dependency versions
 	$(GRADLE) dependencyUpdates --no-configuration-cache --no-parallel

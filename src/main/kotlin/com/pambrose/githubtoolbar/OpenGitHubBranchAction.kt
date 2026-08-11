@@ -37,7 +37,6 @@ import git4idea.repo.GitRepositoryManager
  * can call only a no-argument constructor.
  */
 abstract class OpenGitHubBranchAction(private val destination: GitHubBranchDestination) : AnAction() {
-
     // Reads Git repository state, which is not allowed on the EDT.
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
@@ -58,14 +57,19 @@ abstract class OpenGitHubBranchAction(private val destination: GitHubBranchDesti
         presentation.isEnabled = url != null
         presentation.isVisible = url != null || !e.isFromContextMenu
         presentation.description = when {
-            url != null -> "Open $url in the browser"
+            url != null -> {
+                "Open $url in the browser"
+            }
+
             // A repository was found but the branch is unusable, so explain the branch rather than
             // repeating the generic "no GitHub remote" reason.
-            repository != null && GitHubRepoLocator.repoUrlOf(repository, allowedHosts()) != null ->
+            repository != null && GitHubRepoLocator.repoUrlOf(repository, allowedHosts()) != null -> {
                 GitHubRepoLocator.branchUnavailableReason(repository)
+            }
 
-            else ->
+            else -> {
                 GitHubRepoLocator.unavailableReason(GitRepositoryManager.getInstance(project).repositories)
+            }
         }
     }
 

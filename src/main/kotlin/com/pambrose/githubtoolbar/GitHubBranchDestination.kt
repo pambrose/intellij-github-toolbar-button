@@ -51,7 +51,11 @@ enum class GitHubBranchDestination(private val segment: String) {
         buildString {
             for (byte in branch.toByteArray(Charsets.UTF_8)) {
                 val char = byte.toInt().toChar()
-                if (byte >= 0 && (char.isLetterOrDigit() && char.code < 128 || char in "-._~/")) {
+                // `byte >= 0` keeps this to single-byte ASCII; anything above becomes part of a
+                // multi-byte UTF-8 sequence and has to be percent-encoded byte by byte.
+                val isAscii = byte >= 0
+                val isUnreserved = (char.isLetterOrDigit() && char.code < 128) || char in "-._~/"
+                if (isAscii && isUnreserved) {
                     append(char)
                 } else {
                     append('%').append("%02X".format(byte.toInt() and 0xFF))

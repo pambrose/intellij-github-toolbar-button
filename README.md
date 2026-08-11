@@ -124,7 +124,9 @@ make tests      # tests only
 make run        # launch a sandbox IDE with the plugin
 make dist       # produce the installable ZIP
 make verify     # plugin compatibility check
-make check      # wrapper check, then tests + verifier
+make check      # wrapper check, then ktlint + tests + verifier
+make lint       # report ktlint violations
+make format     # fix what ktlint can fix automatically
 make versions   # report dependencies with newer stable releases
 make all        # clean, build, package, verify
 
@@ -139,6 +141,8 @@ These call Gradle underneath, which you can also invoke directly:
 ./gradlew runIde             # launch a sandbox IDE with the plugin
 ./gradlew buildPlugin        # produce the installable ZIP
 ./gradlew verifyPlugin       # check compatibility across supported IDE versions
+./gradlew lintKotlin         # report ktlint violations
+./gradlew formatKotlin       # fix what ktlint can fix automatically
 ./gradlew dependencyUpdates  # report newer stable dependency versions
 ```
 

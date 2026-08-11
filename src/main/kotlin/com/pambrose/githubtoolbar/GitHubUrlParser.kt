@@ -96,8 +96,10 @@ object GitHubUrlParser {
                 host.takeIf { it.isNotEmpty() }?.let { it to rest.substringAfter('/', "") }
             }
 
-            else -> SCP_STYLE.matchEntire(remote)?.let { m ->
+            else -> {
+                SCP_STYLE.matchEntire(remote)?.let { m ->
                 m.groupValues[1] to m.groupValues[2]
+            }
             }
         }
 

@@ -37,7 +37,6 @@ import git4idea.repo.GitRepositoryManager
  * is no slot worth holding there.
  */
 abstract class OpenGitHubDestinationAction(private val destination: GitHubDestination) : AnAction() {
-
     // Reads Git repository state, which is not allowed on the EDT.
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 

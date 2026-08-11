@@ -10,8 +10,8 @@ repository page in the default browser. See `README.md` for user-facing behavior
 ## Commands
 
 A `Makefile` wraps these (`make help` lists targets): `build`, `tests`, `test-one TEST=<class>`,
-`clean`, `run`, `dist`, `verify`, `check`, `versions`, `check-wrapper`, `upgrade-wrapper`, `all`.
-Note the target is `tests`, not `test`. Underlying Gradle tasks:
+`clean`, `run`, `dist`, `verify`, `check`, `lint`, `format`, `versions`, `check-wrapper`,
+`upgrade-wrapper`, `all`. Note the target is `tests`, not `test`. Underlying Gradle tasks:
 
 ```bash
 ./gradlew build              # compile + test
@@ -73,6 +73,22 @@ plugin without one. They are deliberately *not* the Octocat: that mark is GitHub
 
 The first upload of a plugin has to be made by hand through the Marketplace UI; the API only accepts
 updates to a listing that already exists.
+
+## Formatting
+
+ktlint runs through the Kotlinter plugin: `make lint` reports, `make format` fixes what it can, and
+`make check` lints before testing. CI runs `lintKotlin` ahead of the build so a formatting failure
+comes back in seconds instead of after a full IDE download.
+
+**`.editorconfig` is load-bearing and must stay tracked.** ktlint takes its rules from it, so if it
+were untracked CI would lint with stock defaults and fail on ~33 violations that the checked-in
+config deliberately turns off. Two of those exclusions carry the most weight:
+
+- `function-signature` and `class-signature` force a multiline signature as soon as a declaration
+  has two parameters. Enabled, they would turn `fun urlFor(repoUrl: String, branch: String)` into
+  four lines across the whole codebase.
+- `indent` is off because the sources are 4-space and much of the platform-facing code wraps in ways
+  the rule dislikes.
 
 ## Changelog and release notes
 
