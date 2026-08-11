@@ -24,26 +24,66 @@ package com.pambrose.githubtoolbar
 object GitHubUrlParser {
     private const val HOST = "github.com"
 
+    /** The hosts recognized with no configuration: github.com proper. */
+    val DEFAULT_HOSTS: Set<String> = setOf(HOST, "www.$HOST")
+
+    /**
+     * Hosts known to be aliases of another host, folded away so both spellings produce one URL.
+     * Only github.com's own `www.` alias qualifies — whether some enterprise install answers on
+     * `www.` is not ours to guess.
+     */
+    private val ALIASES: Map<String, String> = mapOf("www.$HOST" to HOST)
+
     private val SCHEME = Regex("^[a-zA-Z][a-zA-Z0-9+.-]*://")
 
     /** `[user@]host:path` — the scp-style form Git accepts for SSH remotes. */
     private val SCP_STYLE = Regex("^(?:[^@/]+@)?([^:/]+):(.+)$")
 
+    /** A plausible hostname: dot-separated labels of letters, digits, and inner dashes. */
+    private val HOSTNAME = Regex("^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$")
+
     /**
-     * Returns `https://github.com/owner/repo`, or `null` if [remoteUrl] is not a well-formed
-     * remote pointing at github.com.
+     * Returns `https://host/owner/repo`, or `null` if [remoteUrl] is not a well-formed remote
+     * pointing at one of [allowedHosts].
+     *
+     * Matching against [allowedHosts] is *exact*, which is what rejects lookalikes such as
+     * `evilgithub.com` and `github.com.evil.example`. Adding a GitHub Enterprise host therefore
+     * widens the set of accepted hosts without weakening how any of them is matched — never
+     * "simplify" this into a `contains`/`endsWith`/suffix test.
      *
      * Any credentials embedded in the remote are discarded rather than carried into the result.
      */
-    fun toRepoUrl(remoteUrl: String): String? {
+    fun toRepoUrl(remoteUrl: String, allowedHosts: Set<String> = DEFAULT_HOSTS): String? {
         val trimmed = remoteUrl.trim()
         if (trimmed.isEmpty()) return null
 
         val (host, path) = splitHostAndPath(trimmed) ?: return null
-        if (!isGitHubHost(host)) return null
+        val matched = host.lowercase()
+        if (allowedHosts.none { it.equals(matched, ignoreCase = true) }) return null
 
         val (owner, repo) = splitOwnerAndRepo(path) ?: return null
-        return "https://$HOST/$owner/$repo"
+        return "https://${ALIASES[matched] ?: matched}/$owner/$repo"
+    }
+
+    /**
+     * Reduces whatever a user typed into the settings field to a bare lowercase hostname, or `null`
+     * when it could never match a remote anyway.
+     *
+     * Accepts a bare host, a pasted clone URL, or an scp-style remote, and discards any scheme,
+     * credentials, port, and path.
+     */
+    fun normalizeHost(raw: String): String? {
+        val trimmed = raw.trim()
+        if (trimmed.isEmpty()) return null
+
+        val withoutScheme = trimmed.replaceFirst(SCHEME, "")
+        val authority = withoutScheme.substringBefore('/')
+        val host = authority
+            .substringAfterLast('@')
+            .substringBefore(':')
+            .lowercase()
+
+        return host.takeIf { it.isNotEmpty() && HOSTNAME.matches(it) }
     }
 
     private fun splitHostAndPath(remote: String): Pair<String, String>? =
@@ -60,10 +100,6 @@ object GitHubUrlParser {
                 m.groupValues[1] to m.groupValues[2]
             }
         }
-
-    /** Exact match only, so lookalikes such as `evilgithub.com` or `github.com.evil` are rejected. */
-    private fun isGitHubHost(host: String): Boolean =
-        host.lowercase() in setOf(HOST, "www.$HOST")
 
     private fun splitOwnerAndRepo(path: String): Pair<String, String>? {
         val segments = path.trim('/').split('/')

@@ -158,5 +158,34 @@ class GitHubRepoLocatorTest : StringSpec() {
             GitHubRepoLocator.unavailableReason(listOf(repository)) shouldBe
                 "No github.com remote found"
         }
+
+        // ---- GitHub Enterprise hosts, as supplied by GitHubHostSettings in production ----
+
+        "an enterprise remote resolves once its host is allowed" {
+            val repository = repo("/project", remote("origin", "git@github.mycompany.com:owner/repo.git"))
+
+            GitHubRepoLocator.repoUrlOf(repository) shouldBe null
+            GitHubRepoLocator.repoUrlOf(repository, setOf("github.mycompany.com")) shouldBe
+                "https://github.mycompany.com/owner/repo"
+        }
+
+        "origin still wins over another allowed enterprise remote" {
+            val repository = repo(
+                "/project",
+                remote("upstream", "https://github.mycompany.com/upstream/repo.git"),
+                remote("origin", "https://github.com/owner/repo.git"),
+            )
+
+            GitHubRepoLocator.repoUrlOf(
+                repository,
+                GitHubUrlParser.DEFAULT_HOSTS + "github.mycompany.com",
+            ) shouldBe "https://github.com/owner/repo"
+        }
+
+        "a remote on an unlisted host stays unresolved even with other hosts allowed" {
+            val repository = repo("/project", remote("origin", "https://github.elsewhere.com/owner/repo.git"))
+
+            GitHubRepoLocator.repoUrlOf(repository, setOf("github.mycompany.com")) shouldBe null
+        }
     }
 }

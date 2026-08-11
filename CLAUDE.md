@@ -57,28 +57,57 @@ mutable `@v6` tag can be repointed at new code, and `release.yml` holds `content
 
 ## Architecture
 
-Three units in `com.pambrose.githubtoolbar`, split so the non-trivial logic carries no IntelliJ
+Everything lives in `com.pambrose.githubtoolbar`, split so the non-trivial logic carries no IntelliJ
 dependency and stays directly unit-testable:
 
 - **`GitHubUrlParser`** — pure Kotlin, zero platform imports. Normalizes any Git remote form
-  (https, scp-style `git@`, `ssh://`, `git://`) to `https://github.com/owner/repo`. Strips embedded
-  credentials so tokens never reach the browser. Host matching is *exact* against `github.com` /
-  `www.github.com`, which is what rejects lookalikes like `evilgithub.com` and
-  `github.com.evil.example` — don't loosen this to a `contains`/`endsWith` check.
+  (https, scp-style `git@`, `ssh://`, `git://`) to `https://host/owner/repo`. Strips embedded
+  credentials so tokens never reach the browser. Host matching is *exact* against the caller's
+  `allowedHosts` (defaulting to `DEFAULT_HOSTS`: `github.com` / `www.github.com`), which is what
+  rejects lookalikes like `evilgithub.com` and `github.com.evil.example` — don't loosen this to a
+  `contains`/`endsWith` check. GitHub Enterprise is supported by *widening that set*, never by
+  weakening the comparison. `normalizeHost` reduces user-entered text to a bare hostname.
+- **`GitHubHostSettings` / `GitHubHostConfigurable`** — an application-level
+  `SimplePersistentStateComponent` holding the extra enterprise hosts, plus its Settings → Tools
+  page. `allowedHosts` always unions in `DEFAULT_HOSTS`, so a bad entry can only fail to add a host,
+  never remove github.com. Mutations go through `State.replaceHosts` because marking state dirty
+  needs `BaseState.incrementModificationCount`, which is `protected`; the public
+  `intIncrementModificationCount` is `@ApiStatus.Internal` and **fails `make verify`**.
 - **`GitHubRepoLocator`** — wraps git4idea. Selects the Git root owning the current file (innermost
   wins when roots nest, via longest matching path), falling back to the project's first root; then
   prefers the `origin` remote, falling back to the first remote that parses as GitHub. Also produces
   the disabled-state tooltip text. Root containment compares whole path segments, so `/code/alpha`
-  does not swallow `/code/alpha-two` — the same class of bug as the exact-host rule above.
-- **`OpenOnGitHubAction`** — thin `AnAction`. Must return `ActionUpdateThread.BGT`, because
-  `update()` reads Git repository state and that is not allowed on the EDT. `update()` also pins
-  `isVisible = true` unconditionally and varies only `isEnabled`/`description`, so the button never
-  vacates its toolbar slot and neighbouring icons never shift between projects.
+  does not swallow `/code/alpha-two` — the same class of bug as the exact-host rule above. It takes
+  `allowedHosts` as a *parameter* and never reads `GitHubHostSettings` itself: a service lookup here
+  needs a running Application, which plain unit tests do not have, and reintroducing one fails the
+  whole suite with `ApplicationManager.getApplication()` returning null. Only the action layer reads
+  settings.
+- **`GitHubDestination`** — pure Kotlin enum of the pages the plugin can open (repository home,
+  `/pulls`, `/issues`, `/actions`, `/releases`). It only appends a fixed path to a URL
+  `GitHubUrlParser` already validated, so it inherits the exact-host and credential-stripping
+  guarantees. Never let it parse or re-derive a host, or those guarantees stop holding.
+- **`OpenGitHubDestinationAction`** — holds all the action behaviour, parameterized by a
+  `GitHubDestination`. Its subclasses (`OpenOnGitHubAction` and the four in
+  `GitHubDestinationActions.kt`) exist *only* to bind a destination: the platform instantiates
+  actions reflectively and can call only a no-argument constructor, so the destination cannot be a
+  registration attribute.
+  `update()` reads Git repository state and that is not allowed on the EDT. Visibility is
+  place-dependent: on a toolbar the button stays visible but disabled, so it never vacates its slot
+  and neighbouring icons never shift between projects; in a context menu (`e.isFromContextMenu`) it
+  hides instead, because a permanently dead menu entry is only clutter. Use `isFromContextMenu`, not
+  `ActionPlaces.isPopupPlace` — the Plugin Verifier flags the latter as deprecated, and
+  `make verify` reports it.
 
-`src/main/resources/META-INF/plugin.xml` registers the action into **both** toolbars. The group IDs
-differ in casing and this is easy to get wrong: new UI is `MainToolbarLeft` (lowercase *b*), classic
-UI is `MainToolBar` (capital *B*). Both were confirmed against `idea/PlatformActions.xml` in an
-installed IDE.
+`src/main/resources/META-INF/plugin.xml` registers the action into **both** toolbars plus two menus
+(`Vcs.Operations.Popup`, `ProjectViewPopupMenu`). The toolbar group IDs differ in casing and this is
+easy to get wrong: new UI is `MainToolbarLeft` (lowercase *b*), classic UI is `MainToolBar` (capital
+*B*). Every group ID here was confirmed to exist in an installed IDE — a typo'd group is not an
+error, the action simply never appears.
+
+The action is titled **"Open Repository on GitHub"** deliberately. The bundled GitHub plugin's
+`Github.Open.In.Browser` group presents itself as "Open on GitHub" in Find Action (via
+`<override-text place="GoToAction"/>`), and it does something different — current file at the
+current revision. Don't rename this back.
 
 Anchors are not intuitive, because the platform's own widgets already occupy these groups.
 `MainToolbarLeft` holds `main.toolbar.Project` then `MainToolbarGeneralActionsGroup`, and the Git

@@ -17,9 +17,14 @@
 package com.pambrose.githubtoolbar
 
 /**
- * The toolbar button: opens the repository home page.
- *
- * This class name is referenced from `plugin.xml` and predates the other destinations, so it keeps
- * its original name rather than following their `OpenGitHub*Action` pattern.
+ * One class per destination, because `plugin.xml` can only instantiate an action through a
+ * no-argument constructor. All behaviour lives in [OpenGitHubDestinationAction].
  */
-class OpenOnGitHubAction : OpenGitHubDestinationAction(GitHubDestination.REPOSITORY)
+
+class OpenGitHubPullRequestsAction : OpenGitHubDestinationAction(GitHubDestination.PULL_REQUESTS)
+
+class OpenGitHubIssuesAction : OpenGitHubDestinationAction(GitHubDestination.ISSUES)
+
+class OpenGitHubActionsAction : OpenGitHubDestinationAction(GitHubDestination.ACTIONS)
+
+class OpenGitHubReleasesAction : OpenGitHubDestinationAction(GitHubDestination.RELEASES)
