@@ -55,6 +55,27 @@ Every `uses:` is pinned to a 40-character commit SHA with the version in a trail
 mutable `@v6` tag can be repointed at new code, and `release.yml` holds `contents: write`. Don't
 "tidy" these back into tags. `.github/dependabot.yml` updates the SHA and the comment together.
 
+## Changelog and release notes
+
+`CHANGELOG.md` is the single source for the plugin's `changeNotes`: the `org.jetbrains.changelog`
+plugin extracts the section matching `version` from `gradle.properties` (falling back to
+`[Unreleased]`) and converts it to the HTML the plugin manager renders. Don't hand-write
+`changeNotes` — it will be overwritten. `RELEASE_NOTES.md` is separate and hand-written: the prose
+for one release, replaced each time.
+
+Two settings are load-bearing:
+
+- `versionPrefix = ""`, because tags here carry no `v`. The default writes links like
+  `compare/v1.0.0...HEAD`, which 404 against this repository's tags.
+- `introduction` duplicates `CHANGELOG.md`'s preamble. `patchChangelog` rewrites the file and only
+  preserves a preamble it knows about, so the two must be edited together.
+
+Release flow: bump `version` in `gradle.properties`, then `make patch-changelog`, which moves the
+`[Unreleased]` notes into a dated section. Bump *first* — run against a version that already has a
+section and `patchChangelog` consumes the notes and writes nothing, silently losing them. `make
+patch-changelog` guards against exactly that; `./gradlew patchChangelog` does not. Note it stamps the
+local date, which can differ from the UTC date the releases page shows.
+
 ## Architecture
 
 Everything lives in `com.pambrose.githubtoolbar`, split so the non-trivial logic carries no IntelliJ

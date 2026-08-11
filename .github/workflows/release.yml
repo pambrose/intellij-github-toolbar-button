@@ -45,4 +45,6 @@ jobs:
         with:
           name: v${{ github.ref_name }}
           files: build/distributions/*.zip
+          # The hand-written notes lead; GitHub's generated commit list is appended below them.
+          body_path: RELEASE_NOTES.md
           generate_release_notes: true
