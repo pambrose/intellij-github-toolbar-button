@@ -61,7 +61,10 @@ object GitHubRepoLocator {
     }
 
     /** Picks the repository owning [contextFile], falling back to the first one. */
-    fun selectRepository(repositories: List<GitRepository>, contextFile: VirtualFile?): GitRepository? {
+    fun selectRepository(
+        repositories: List<GitRepository>,
+        contextFile: VirtualFile?,
+    ): GitRepository? {
         if (repositories.isEmpty()) return null
 
         val path = contextFile?.path

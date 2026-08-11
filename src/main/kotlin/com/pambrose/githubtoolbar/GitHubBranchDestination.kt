@@ -25,7 +25,9 @@ package com.pambrose.githubtoolbar
  *
  * Deliberately free of IntelliJ Platform dependencies so it can be unit tested directly.
  */
-enum class GitHubBranchDestination(private val segment: String) {
+enum class GitHubBranchDestination(
+    private val segment: String,
+) {
     BRANCH("tree"),
     NEW_PULL_REQUEST("pull/new"),
     ;
@@ -34,7 +36,10 @@ enum class GitHubBranchDestination(private val segment: String) {
      * Returns the URL of this destination for [branch] within [repoUrl], or `null` when [branch] is
      * blank.
      */
-    fun urlFor(repoUrl: String, branch: String): String? {
+    fun urlFor(
+        repoUrl: String,
+        branch: String,
+    ): String? {
         if (branch.isBlank()) return null
         return "${repoUrl.trimEnd('/')}/$segment/${encodePath(branch)}"
     }

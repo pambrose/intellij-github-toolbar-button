@@ -36,7 +36,9 @@ import git4idea.repo.GitRepositoryManager
  * stays visible but disabled, and its tooltip explains why. In a menu it hides instead, since there
  * is no slot worth holding there.
  */
-abstract class OpenGitHubDestinationAction(private val destination: GitHubDestination) : AnAction() {
+abstract class OpenGitHubDestinationAction(
+    private val destination: GitHubDestination,
+) : AnAction() {
     // Reads Git repository state, which is not allowed on the EDT.
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
@@ -70,7 +72,10 @@ abstract class OpenGitHubDestinationAction(private val destination: GitHubDestin
 
     // The one place that couples resolution to user settings, so GitHubRepoLocator itself needs no
     // running Application and stays testable against mocked git4idea types alone.
-    private fun destinationUrl(e: AnActionEvent, project: Project): String? =
+    private fun destinationUrl(
+        e: AnActionEvent,
+        project: Project,
+    ): String? =
         GitHubRepoLocator
             .locate(project, e.getData(CommonDataKeys.VIRTUAL_FILE), GitHubHostSettings.getInstance().allowedHosts)
             ?.let(destination::urlFor)

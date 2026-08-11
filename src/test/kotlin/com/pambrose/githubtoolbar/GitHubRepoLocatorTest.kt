@@ -27,13 +27,19 @@ import io.mockk.every
 import io.mockk.mockk
 
 class GitHubRepoLocatorTest : StringSpec() {
-    private fun remote(remoteName: String, vararg remoteUrls: String): GitRemote =
+    private fun remote(
+        remoteName: String,
+        vararg remoteUrls: String,
+    ): GitRemote =
         mockk<GitRemote>().also {
             every { it.name } returns remoteName
             every { it.urls } returns remoteUrls.toList()
         }
 
-    private fun repo(rootPath: String = "/project", vararg remotes: GitRemote): GitRepository {
+    private fun repo(
+        rootPath: String = "/project",
+        vararg remotes: GitRemote,
+    ): GitRepository {
         val rootFile = mockk<VirtualFile>().also { every { it.path } returns rootPath }
         return mockk<GitRepository>().also {
             every { it.root } returns rootFile
@@ -41,14 +47,16 @@ class GitHubRepoLocatorTest : StringSpec() {
         }
     }
 
-    private fun fileAt(filePath: String): VirtualFile =
-        mockk<VirtualFile>().also { every { it.path } returns filePath }
+    private fun fileAt(filePath: String): VirtualFile = mockk<VirtualFile>().also { every { it.path } returns filePath }
 
     /**
      * A repository sitting on [branchName], tracking an upstream when [pushed]. Detached HEAD is
      * modelled by a null branch, which is what git4idea reports.
      */
-    private fun repoOnBranch(branchName: String?, pushed: Boolean): GitRepository {
+    private fun repoOnBranch(
+        branchName: String?,
+        pushed: Boolean,
+    ): GitRepository {
         val repository = repo("/project", remote("origin", "https://github.com/owner/repo.git"))
         val branch = branchName?.let { name ->
             mockk<GitLocalBranch>().also { every { it.name } returns name }

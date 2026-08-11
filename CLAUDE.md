@@ -81,14 +81,21 @@ ktlint runs through the Kotlinter plugin: `make lint` reports, `make format` fix
 comes back in seconds instead of after a full IDE download.
 
 **`.editorconfig` is load-bearing and must stay tracked.** ktlint takes its rules from it, so if it
-were untracked CI would lint with stock defaults and fail on ~33 violations that the checked-in
-config deliberately turns off. Two of those exclusions carry the most weight:
+were untracked CI would lint with stock defaults and fail on violations the checked-in config turns
+off — `indent`, `import-ordering`, `no-trailing-spaces` and the wrapping rules among them.
 
-- `function-signature` and `class-signature` force a multiline signature as soon as a declaration
-  has two parameters. Enabled, they would turn `fun urlFor(repoUrl: String, branch: String)` into
-  four lines across the whole codebase.
-- `indent` is off because the sources are 4-space and much of the platform-facing code wraps in ways
-  the rule dislikes.
+`function-signature` and `class-signature` are *on*, so any declaration with two or more parameters
+is written across multiple lines:
+
+```kotlin
+fun urlFor(
+    repoUrl: String,
+    branch: String,
+): String?
+```
+
+That is the house style here — match it in new code rather than reaching for the exclusion, and note
+that `make format` will rewrite a single-line signature for you.
 
 ## Changelog and release notes
 

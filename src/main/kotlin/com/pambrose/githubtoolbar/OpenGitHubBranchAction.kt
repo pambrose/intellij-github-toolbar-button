@@ -36,7 +36,9 @@ import git4idea.repo.GitRepositoryManager
  * Subclasses exist only to bind a destination: the platform instantiates actions reflectively and
  * can call only a no-argument constructor.
  */
-abstract class OpenGitHubBranchAction(private val destination: GitHubBranchDestination) : AnAction() {
+abstract class OpenGitHubBranchAction(
+    private val destination: GitHubBranchDestination,
+) : AnAction() {
     // Reads Git repository state, which is not allowed on the EDT.
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
@@ -79,7 +81,10 @@ abstract class OpenGitHubBranchAction(private val destination: GitHubBranchDesti
         BrowserUtil.browse(branchUrl(repository) ?: return)
     }
 
-    private fun selectedRepository(e: AnActionEvent, project: Project): GitRepository? =
+    private fun selectedRepository(
+        e: AnActionEvent,
+        project: Project,
+    ): GitRepository? =
         GitHubRepoLocator.selectRepository(
             GitRepositoryManager.getInstance(project).repositories,
             e.getData(CommonDataKeys.VIRTUAL_FILE),

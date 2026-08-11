@@ -18,12 +18,6 @@ indent_size = 4
 
 [*.{kt,kts}]
 indent_size = 4
-# These force a multiline signature as soon as a declaration has two parameters, which would turn
-# signatures such as `fun urlFor(repoUrl: String, branch: String)` into four lines throughout.
-# That fights the house style rather than catching anything.
-ktlint_standard_function-signature = disabled
-ktlint_standard_class-signature = disabled
-ktlint_standard_no-wildcard-imports = disabled
 ktlint_standard_multiline-if-else = disabled
 ktlint_standard_string-template-indent = disabled
 ktlint_standard_indent = disabled

@@ -26,7 +26,9 @@ package com.pambrose.githubtoolbar
  *
  * Deliberately free of IntelliJ Platform dependencies so it can be unit tested directly.
  */
-enum class GitHubDestination(segment: String) {
+enum class GitHubDestination(
+    segment: String,
+) {
     REPOSITORY(""),
     PULL_REQUESTS("pulls"),
     ISSUES("issues"),
