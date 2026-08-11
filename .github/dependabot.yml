@@ -1,0 +1,16 @@
+version: 2
+
+updates:
+  # Only the actions themselves. Gradle dependencies are deliberately left out:
+  # `make versions` (ben-manes) already reports those, and the two would duplicate
+  # each other. The catalog's `jvm` and `gradle-wrapper` entries are invisible to
+  # both, so they still need bumping by hand.
+  #
+  # This is what keeps the SHA-pinned `uses:` refs in the workflows current —
+  # Dependabot rewrites the SHA and the trailing `# vX.Y.Z` comment together.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
