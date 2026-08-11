@@ -8,29 +8,24 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Published
 
 ## [Unreleased]
 
-### Added
-
-- **Open Pull Request for Current Branch**, which opens GitHub's create-PR page for the branch you
-  are on, and **Open Current Branch on GitHub**, which opens its tree view. Both live in the
-  **GitHub** submenu and can take keyboard shortcuts.
-- Both stay disabled until the current branch tracks an upstream, because a branch that has never
-  been pushed has no page on GitHub. The tooltip distinguishes a detached HEAD from an unpushed
-  branch rather than leaving a dead entry unexplained.
-- Branch names are percent-encoded for the URL, except for `/`, which stays a path separator so
-  `feature/x` resolves correctly.
-- **Copy GitHub URL**, which puts the repository URL on the clipboard instead of opening a browser.
-  It resolves the URL exactly as the toolbar button does.
-- An **Open Other Remote** submenu listing every GitHub remote, so a fork can reach its `upstream`
-  rather than always following `origin`. It appears only when a repository has more than one GitHub
-  remote, so single-remote projects see nothing new.
-
-## [1.1.0] - 2026-08-10
+## [1.1.0] - 2026-08-11
 
 ### Added
 
 - A **GitHub** submenu in the VCS Operations popup and the Project View context menu, opening the
   repository's **Pull Requests**, **Issues**, **Actions**, and **Releases** alongside its home page.
   Each is a separate command, so any of them can be bound to a keyboard shortcut.
+- **Open Pull Request for Current Branch**, which opens GitHub's create-PR page for the branch you
+  are on, and **Open Current Branch on GitHub**, which opens its tree view. Both stay disabled until
+  the current branch tracks an upstream, because a branch that has never been pushed has no page on
+  GitHub; the tooltip distinguishes a detached HEAD from an unpushed branch rather than leaving a
+  dead entry unexplained. Branch names are percent-encoded for the URL, except for `/`, which stays
+  a path separator so `feature/x` resolves correctly.
+- **Copy GitHub URL**, which puts the repository URL on the clipboard instead of opening a browser.
+  It resolves the URL exactly as the toolbar button does.
+- An **Open Other Remote** submenu listing every GitHub remote, so a fork can reach its `upstream`
+  rather than always following `origin`. It appears only when a repository has more than one GitHub
+  remote, so single-remote projects see nothing new.
 - GitHub Enterprise support. Additional hosts are configured under **Settings | Tools | GitHub
   Toolbar Button**, one per line; a pasted clone URL is reduced to its host. Configured hosts are
   matched exactly, exactly as `github.com` always was, so adding `github.mycompany.com` recognizes
