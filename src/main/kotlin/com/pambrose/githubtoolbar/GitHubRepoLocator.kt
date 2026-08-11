@@ -76,6 +76,24 @@ object GitHubRepoLocator {
         return repositories.first()
     }
 
+    /**
+     * The current branch of [repository], but only once it tracks an upstream.
+     *
+     * A branch with no upstream has never been pushed, so every branch-specific URL for it would
+     * 404. Returning `null` here is what keeps those actions disabled rather than opening a dead
+     * page. `null` also covers a detached HEAD, which git4idea reports as no current branch.
+     */
+    fun pushedBranchOf(repository: GitRepository): String? {
+        val branch = repository.currentBranch ?: return null
+        return branch.name.takeIf { repository.getBranchTrackInfo(it) != null }
+    }
+
+    /** Explains, for a disabled branch action's tooltip, why no branch URL could be built. */
+    fun branchUnavailableReason(repository: GitRepository): String {
+        val branch = repository.currentBranch ?: return "Not currently on a branch"
+        return "Branch '${branch.name}' has not been pushed"
+    }
+
     /** Explains, for the disabled button's tooltip, why no GitHub page could be resolved. */
     fun unavailableReason(repositories: List<GitRepository>): String =
         when {

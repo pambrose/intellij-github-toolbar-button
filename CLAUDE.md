@@ -126,6 +126,15 @@ dependency and stays directly unit-testable:
   `/pulls`, `/issues`, `/actions`, `/releases`). It only appends a fixed path to a URL
   `GitHubUrlParser` already validated, so it inherits the exact-host and credential-stripping
   guarantees. Never let it parse or re-derive a host, or those guarantees stop holding.
+- **`GitHubBranchDestination`** — pure Kotlin enum for the branch-specific pages (`/tree/<branch>`,
+  `/pull/new/<branch>`). Separate from `GitHubDestination` because these need a branch and that one
+  does not. It percent-encodes the branch for the URL but leaves `/` intact: a slash is ordinary in
+  a branch name *and* is GitHub's path separator, so `feature/x` must stay `feature/x`. Git permits
+  `#` and `?` in a ref name, and either would otherwise change where the URL ends.
+- **`OpenGitHubBranchAction`** — the branch counterpart of `OpenGitHubDestinationAction`. Stays
+  disabled unless `GitHubRepoLocator.pushedBranchOf` returns a branch, which it only does when the
+  branch tracks an upstream: a branch that was never pushed 404s on GitHub. Don't relax this to
+  "any current branch" — the point is not opening a dead page.
 - **`OpenGitHubDestinationAction`** — holds all the action behaviour, parameterized by a
   `GitHubDestination`. Its subclasses (`OpenOnGitHubAction` and the four in
   `GitHubDestinationActions.kt`) exist *only* to bind a destination: the platform instantiates

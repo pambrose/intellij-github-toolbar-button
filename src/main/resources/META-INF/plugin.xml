@@ -70,6 +70,18 @@
                 text="Open Releases on GitHub"
                 description="Open this project's GitHub releases in the default browser"/>
 
+        <!-- Branch-specific: these stay disabled until the current branch tracks an upstream,
+             because a branch that was never pushed has no page on GitHub to open. -->
+        <action id="com.pambrose.githubtoolbar.OpenCurrentBranch"
+                class="com.pambrose.githubtoolbar.OpenGitHubCurrentBranchAction"
+                text="Open Current Branch on GitHub"
+                description="Open the current branch's tree view in the default browser"/>
+
+        <action id="com.pambrose.githubtoolbar.OpenNewPullRequest"
+                class="com.pambrose.githubtoolbar.OpenGitHubNewPullRequestAction"
+                text="Open Pull Request for Current Branch"
+                description="Start a GitHub pull request for the current branch in the default browser"/>
+
         <!-- A submenu rather than five flat entries, which would swamp the host menus. Each action
              keeps a self-describing name so it still reads correctly in Find Action and Keymap,
              where the surrounding submenu is not visible. -->
@@ -78,6 +90,9 @@
                popup="true"
                icon="AllIcons.Vcs.Vendors.Github">
             <reference ref="com.pambrose.githubtoolbar.OpenOnGitHub"/>
+            <separator/>
+            <reference ref="com.pambrose.githubtoolbar.OpenCurrentBranch"/>
+            <reference ref="com.pambrose.githubtoolbar.OpenNewPullRequest"/>
             <separator/>
             <reference ref="com.pambrose.githubtoolbar.OpenPullRequests"/>
             <reference ref="com.pambrose.githubtoolbar.OpenIssues"/>
