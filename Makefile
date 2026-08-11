@@ -1,5 +1,5 @@
 .PHONY: help build tests test-one clean run dist verify check versions check-wrapper \
-        upgrade-wrapper all _require-gradle-version
+        upgrade-wrapper changelog patch-changelog all _require-gradle-version
 .DEFAULT_GOAL := help
 
 GRADLE := ./gradlew
@@ -62,6 +62,20 @@ check-wrapper: _require-gradle-version ## Verify the wrapper matches the catalog
 upgrade-wrapper: _require-gradle-version ## Upgrade the Gradle wrapper to the catalog version
 	$(GRADLE) wrapper --gradle-version=$(GRADLE_VERSION) --distribution-type=bin
 	$(GRADLE) wrapper --gradle-version=$(GRADLE_VERSION) --distribution-type=bin
+
+changelog: ## Show the changelog notes for the current version
+	@$(GRADLE) getChangelog --no-header --no-empty-sections -q
+
+# patchChangelog moves the Unreleased notes into a section for the *current* version. If that
+# section already exists it consumes them and writes nothing — a silent loss of the notes — so
+# refuse to run before gradle.properties has been bumped.
+patch-changelog: ## Move the Unreleased notes into a section for the current version
+	@grep -q "^## \[$(VERSION)\]" CHANGELOG.md && { \
+		echo "ERROR: CHANGELOG.md already has a [$(VERSION)] section." >&2; \
+		echo "       Bump version= in gradle.properties first, or patchChangelog will discard" >&2; \
+		echo "       the Unreleased notes instead of moving them." >&2; \
+		exit 1; } || true
+	$(GRADLE) patchChangelog
 
 all: ## Clean, build, package, and verify from scratch
 	$(GRADLE) clean build buildPlugin verifyPlugin
