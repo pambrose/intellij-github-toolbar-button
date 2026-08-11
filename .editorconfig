@@ -1,0 +1,30 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 4
+insert_final_newline = true
+max_line_length = 120
+trim_trailing_whitespace = true
+
+[build.gradle]
+indent_size = 4
+
+# Override for Makefile
+[{Makefile, makefile}]
+indent_style = tab
+indent_size = 4
+
+[*.{kt,kts}]
+indent_size = 4
+ktlint_standard_multiline-if-else = disabled
+ktlint_standard_string-template-indent = disabled
+ktlint_standard_indent = disabled
+ktlint_standard_multiline-expression-wrapping = disabled
+ktlint_standard_chain-method-continuation = disabled
+ktlint_standard_no-trailing-spaces = disabled
+ktlint_standard_import-ordering = disabled
+
+[build/generated/**/*]
+ktlint = disabled

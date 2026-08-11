@@ -53,7 +53,10 @@ object GitHubUrlParser {
      *
      * Any credentials embedded in the remote are discarded rather than carried into the result.
      */
-    fun toRepoUrl(remoteUrl: String, allowedHosts: Set<String> = DEFAULT_HOSTS): String? {
+    fun toRepoUrl(
+        remoteUrl: String,
+        allowedHosts: Set<String> = DEFAULT_HOSTS,
+    ): String? {
         val trimmed = remoteUrl.trim()
         if (trimmed.isEmpty()) return null
 
@@ -96,8 +99,10 @@ object GitHubUrlParser {
                 host.takeIf { it.isNotEmpty() }?.let { it to rest.substringAfter('/', "") }
             }
 
-            else -> SCP_STYLE.matchEntire(remote)?.let { m ->
-                m.groupValues[1] to m.groupValues[2]
+            else -> {
+                SCP_STYLE.matchEntire(remote)?.let { m ->
+                    m.groupValues[1] to m.groupValues[2]
+                }
             }
         }
 

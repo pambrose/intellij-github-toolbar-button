@@ -25,7 +25,9 @@ package com.pambrose.githubtoolbar
  *
  * Deliberately free of IntelliJ Platform dependencies so it can be unit tested directly.
  */
-enum class GitHubBranchDestination(private val segment: String) {
+enum class GitHubBranchDestination(
+    private val segment: String,
+) {
     BRANCH("tree"),
     NEW_PULL_REQUEST("pull/new"),
     ;
@@ -34,7 +36,10 @@ enum class GitHubBranchDestination(private val segment: String) {
      * Returns the URL of this destination for [branch] within [repoUrl], or `null` when [branch] is
      * blank.
      */
-    fun urlFor(repoUrl: String, branch: String): String? {
+    fun urlFor(
+        repoUrl: String,
+        branch: String,
+    ): String? {
         if (branch.isBlank()) return null
         return "${repoUrl.trimEnd('/')}/$segment/${encodePath(branch)}"
     }
@@ -51,7 +56,11 @@ enum class GitHubBranchDestination(private val segment: String) {
         buildString {
             for (byte in branch.toByteArray(Charsets.UTF_8)) {
                 val char = byte.toInt().toChar()
-                if (byte >= 0 && (char.isLetterOrDigit() && char.code < 128 || char in "-._~/")) {
+                // `byte >= 0` keeps this to single-byte ASCII; anything above becomes part of a
+                // multi-byte UTF-8 sequence and has to be percent-encoded byte by byte.
+                val isAscii = byte >= 0
+                val isUnreserved = (char.isLetterOrDigit() && char.code < 128) || char in "-._~/"
+                if (isAscii && isUnreserved) {
                     append(char)
                 } else {
                     append('%').append("%02X".format(byte.toInt() and 0xFF))

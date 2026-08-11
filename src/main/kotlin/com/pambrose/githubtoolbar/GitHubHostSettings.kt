@@ -33,7 +33,6 @@ import com.intellij.openapi.components.service
     storages = [Storage("githubToolbarButton.xml")],
 )
 class GitHubHostSettings : SimplePersistentStateComponent<GitHubHostSettings.State>(State()) {
-
     class State : BaseState() {
         /** Stored already normalized by [GitHubUrlParser.normalizeHost]. */
         val hosts: MutableList<String> by list()

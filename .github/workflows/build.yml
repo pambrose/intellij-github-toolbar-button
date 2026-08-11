@@ -43,6 +43,11 @@ jobs:
       - name: Check wrapper matches the catalog
         run: make check-wrapper
 
+      # Before the build: a formatting violation should be reported in seconds rather than after a
+      # full IDE download and verifier run.
+      - name: Check formatting
+        run: ./gradlew lintKotlin
+
       - name: Build and test
         run: ./gradlew build
 

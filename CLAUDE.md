@@ -10,8 +10,8 @@ repository page in the default browser. See `README.md` for user-facing behavior
 ## Commands
 
 A `Makefile` wraps these (`make help` lists targets): `build`, `tests`, `test-one TEST=<class>`,
-`clean`, `run`, `dist`, `verify`, `check`, `versions`, `check-wrapper`, `upgrade-wrapper`, `all`.
-Note the target is `tests`, not `test`. Underlying Gradle tasks:
+`clean`, `run`, `dist`, `verify`, `check`, `lint`, `format`, `versions`, `check-wrapper`,
+`upgrade-wrapper`, `all`. Note the target is `tests`, not `test`. Underlying Gradle tasks:
 
 ```bash
 ./gradlew build              # compile + test
@@ -73,6 +73,29 @@ plugin without one. They are deliberately *not* the Octocat: that mark is GitHub
 
 The first upload of a plugin has to be made by hand through the Marketplace UI; the API only accepts
 updates to a listing that already exists.
+
+## Formatting
+
+ktlint runs through the Kotlinter plugin: `make lint` reports, `make format` fixes what it can, and
+`make check` lints before testing. CI runs `lintKotlin` ahead of the build so a formatting failure
+comes back in seconds instead of after a full IDE download.
+
+**`.editorconfig` is load-bearing and must stay tracked.** ktlint takes its rules from it, so if it
+were untracked CI would lint with stock defaults and fail on violations the checked-in config turns
+off — `indent`, `import-ordering`, `no-trailing-spaces` and the wrapping rules among them.
+
+`function-signature` and `class-signature` are *on*, so any declaration with two or more parameters
+is written across multiple lines:
+
+```kotlin
+fun urlFor(
+    repoUrl: String,
+    branch: String,
+): String?
+```
+
+That is the house style here — match it in new code rather than reaching for the exclusion, and note
+that `make format` will rewrite a single-line signature for you.
 
 ## Changelog and release notes
 
