@@ -18,6 +18,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Published
   branch rather than leaving a dead entry unexplained.
 - Branch names are percent-encoded for the URL, except for `/`, which stays a path separator so
   `feature/x` resolves correctly.
+- **Copy GitHub URL**, which puts the repository URL on the clipboard instead of opening a browser.
+  It resolves the URL exactly as the toolbar button does.
+- An **Open Other Remote** submenu listing every GitHub remote, so a fork can reach its `upstream`
+  rather than always following `origin`. It appears only when a repository has more than one GitHub
+  remote, so single-remote projects see nothing new.
 
 ## [1.1.0] - 2026-08-10
 

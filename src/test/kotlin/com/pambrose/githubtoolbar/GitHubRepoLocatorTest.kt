@@ -235,5 +235,69 @@ class GitHubRepoLocatorTest : StringSpec() {
             GitHubRepoLocator.branchUnavailableReason(repoOnBranch("feature/x", pushed = false)) shouldBe
                 "Branch 'feature/x' has not been pushed"
         }
+
+        // ---- Every GitHub remote, for choosing between them ----
+
+        "lists a single GitHub remote" {
+            val repository = repo("/project", remote("origin", "https://github.com/owner/repo.git"))
+
+            GitHubRepoLocator.gitHubRemotes(repository) shouldBe
+                listOf(GitHubRepoLocator.NamedRemote("origin", "https://github.com/owner/repo"))
+        }
+
+        // A fork has both, and origin winning silently is exactly what makes upstream unreachable.
+        "lists every GitHub remote with origin first" {
+            val repository = repo(
+                "/project",
+                remote("upstream", "https://github.com/upstream-owner/repo.git"),
+                remote("origin", "https://github.com/my-owner/repo.git"),
+            )
+
+            GitHubRepoLocator.gitHubRemotes(repository) shouldBe
+                listOf(
+                    GitHubRepoLocator.NamedRemote("origin", "https://github.com/my-owner/repo"),
+                    GitHubRepoLocator.NamedRemote("upstream", "https://github.com/upstream-owner/repo"),
+                )
+        }
+
+        "keeps the declared order among the non-origin remotes" {
+            val repository = repo(
+                "/project",
+                remote("bravo", "https://github.com/owner/bravo.git"),
+                remote("alpha", "https://github.com/owner/alpha.git"),
+            )
+
+            GitHubRepoLocator.gitHubRemotes(repository).map { it.name } shouldBe listOf("bravo", "alpha")
+        }
+
+        "leaves out remotes that are not on an allowed host" {
+            val repository = repo(
+                "/project",
+                remote("origin", "https://github.com/owner/repo.git"),
+                remote("mirror", "https://gitlab.com/owner/repo.git"),
+            )
+
+            GitHubRepoLocator.gitHubRemotes(repository).map { it.name } shouldBe listOf("origin")
+        }
+
+        "lists an enterprise remote once its host is allowed" {
+            val repository = repo(
+                "/project",
+                remote("origin", "https://github.com/owner/repo.git"),
+                remote("work", "https://github.mycompany.com/owner/repo.git"),
+            )
+
+            GitHubRepoLocator.gitHubRemotes(repository).map { it.name } shouldBe listOf("origin")
+            GitHubRepoLocator.gitHubRemotes(
+                repository,
+                GitHubUrlParser.DEFAULT_HOSTS + "github.mycompany.com",
+            ).map { it.name } shouldBe listOf("origin", "work")
+        }
+
+        "returns nothing when no remote is on GitHub" {
+            val repository = repo("/project", remote("origin", "https://gitlab.com/owner/repo.git"))
+
+            GitHubRepoLocator.gitHubRemotes(repository) shouldBe emptyList()
+        }
     }
 }

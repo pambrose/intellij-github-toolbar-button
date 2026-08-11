@@ -82,6 +82,18 @@
                 text="Open Pull Request for Current Branch"
                 description="Start a GitHub pull request for the current branch in the default browser"/>
 
+        <action id="com.pambrose.githubtoolbar.CopyUrl"
+                class="com.pambrose.githubtoolbar.CopyGitHubUrlAction"
+                text="Copy GitHub URL"
+                description="Copy this project's GitHub repository URL to the clipboard"/>
+
+        <!-- Children are computed per invocation, since the remotes are unknown until a project is
+             open. Hides itself unless the repository has more than one GitHub remote. -->
+        <group id="com.pambrose.githubtoolbar.Remotes"
+               class="com.pambrose.githubtoolbar.GitHubRemotesActionGroup"
+               text="Open Other Remote"
+               popup="true"/>
+
         <!-- A submenu rather than five flat entries, which would swamp the host menus. Each action
              keeps a self-describing name so it still reads correctly in Find Action and Keymap,
              where the surrounding submenu is not visible. -->
@@ -98,6 +110,9 @@
             <reference ref="com.pambrose.githubtoolbar.OpenIssues"/>
             <reference ref="com.pambrose.githubtoolbar.OpenActions"/>
             <reference ref="com.pambrose.githubtoolbar.OpenReleases"/>
+            <separator/>
+            <reference ref="com.pambrose.githubtoolbar.Remotes"/>
+            <reference ref="com.pambrose.githubtoolbar.CopyUrl"/>
 
             <!-- VCS Operations popup: project-scoped Git actions live here. -->
             <add-to-group group-id="Vcs.Operations.Popup" anchor="last"/>

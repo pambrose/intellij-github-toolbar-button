@@ -79,6 +79,30 @@ object GitHubRepoLocator {
         return repositories.first()
     }
 
+    /** A Git remote that resolves to a GitHub page, paired with the name it is configured under. */
+    data class NamedRemote(
+        val name: String,
+        val url: String,
+    )
+
+    /**
+     * Every remote of [repository] that resolves to a GitHub page, `origin` first and the rest in
+     * their configured order.
+     *
+     * [repoUrlOf] answers "where does this project live", which is the right question almost always.
+     * This answers "where could it live", which is what a fork needs: with `origin` and `upstream`
+     * both on GitHub, preferring `origin` silently makes the other unreachable.
+     */
+    fun gitHubRemotes(
+        repository: GitRepository,
+        allowedHosts: Set<String> = GitHubUrlParser.DEFAULT_HOSTS,
+    ): List<NamedRemote> =
+        repository.remotes
+            .sortedBy { it.name != ORIGIN }
+            .mapNotNull { remote ->
+                remote.gitHubUrl(allowedHosts)?.let { NamedRemote(remote.name, it) }
+            }
+
     /**
      * The current branch of [repository], but only once it tracks an upstream.
      *
