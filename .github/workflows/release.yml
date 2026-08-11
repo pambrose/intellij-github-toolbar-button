@@ -37,9 +37,16 @@ jobs:
             exit 1
           fi
 
+      # A release is public and permanent, so the compatibility check runs here too rather than
+      # trusting that the tagged commit is the one master last verified.
+      - name: Verify plugin compatibility
+        run: ./gradlew verifyPlugin
+
       - name: Build plugin
         run: ./gradlew buildPlugin
 
+      # Before publishPlugin, which also produces a *-signed.zip: attaching the release here keeps
+      # exactly one ZIP on it instead of two near-identically named ones.
       - name: Publish release
         uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
         with:
@@ -48,3 +55,35 @@ jobs:
           # The hand-written notes lead; GitHub's generated commit list is appended below them.
           body_path: RELEASE_NOTES.md
           generate_release_notes: true
+
+      # The `secrets` context is not available in a step `if`, so presence is turned into an output
+      # here. Keeping the secrets scoped to the two steps that need them beats a job-level `env`,
+      # which would hand them to every third-party action in this job as well.
+      - name: Check for Marketplace credentials
+        id: credentials
+        env:
+          PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        run: |
+          if [ -n "$PUBLISH_TOKEN" ] && [ -n "$PRIVATE_KEY" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Marketplace publishing is opt-in: with no secrets configured this is skipped and the GitHub
+      # release above still happens, rather than every future tag failing on absent credentials.
+      # Marketplace also requires the first upload of a plugin to be made by hand.
+      - name: Publish to JetBrains Marketplace
+        if: steps.credentials.outputs.configured == 'true'
+        env:
+          PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+          CERTIFICATE_CHAIN: ${{ secrets.CERTIFICATE_CHAIN }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          PRIVATE_KEY_PASSWORD: ${{ secrets.PRIVATE_KEY_PASSWORD }}
+        run: ./gradlew publishPlugin
+
+      - name: Note that Marketplace publishing was skipped
+        if: steps.credentials.outputs.configured != 'true'
+        run: |
+          echo "::notice::Published to GitHub only. Set PUBLISH_TOKEN, CERTIFICATE_CHAIN, PRIVATE_KEY and PRIVATE_KEY_PASSWORD to also publish to the JetBrains Marketplace."

@@ -10,8 +10,9 @@ on:
 permissions:
   contents: read
 
-# A newer push makes an in-flight run obsolete. Cancelling it keeps billed minutes
-# down, which matters while this repository is private.
+# A newer push makes an in-flight run obsolete, and these runs are long: a cold
+# cache pulls a full IntelliJ IDEA distribution. Cancelling frees the runner for
+# the commit anyone is actually waiting on.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true

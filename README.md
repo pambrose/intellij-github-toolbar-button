@@ -1,10 +1,12 @@
 # GitHub Toolbar Button
 
-[![IntelliJ IDEA](https://img.shields.io/badge/IntelliJ%20IDEA-2025.2+-000000?logo=intellijidea&logoColor=white)](https://www.jetbrains.com/idea/)
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.4.10-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org)
-[![JDK](https://img.shields.io/badge/JDK-21-437291?logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/21/)
-[![Gradle](https://img.shields.io/badge/Gradle-9.7.0-02303A?logo=gradle&logoColor=white)](https://gradle.org)
-[![License](https://img.shields.io/badge/license-Apache%202.0-D22128?logo=apache&logoColor=white)](LICENSE)
+[![Build](https://github.com/pambrose/intellij-github-toolbar-button/actions/workflows/build.yml/badge.svg)](https://github.com/pambrose/intellij-github-toolbar-button/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/v/release/pambrose/intellij-github-toolbar-button?logo=github&color=2ea44f)](https://github.com/pambrose/intellij-github-toolbar-button/releases/latest)
+[![IntelliJ IDEA](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fpambrose%2Fintellij-github-toolbar-button%2Fmaster%2Fgradle%2Flibs.versions.toml&query=%24.versions.intellijIdea&suffix=%2B&label=IntelliJ%20IDEA&color=000000&logo=intellijidea&logoColor=white)](https://www.jetbrains.com/idea/)
+[![Kotlin](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fpambrose%2Fintellij-github-toolbar-button%2Fmaster%2Fgradle%2Flibs.versions.toml&query=%24.versions.kotlin&label=Kotlin&color=7F52FF&logo=kotlin&logoColor=white)](https://kotlinlang.org)
+[![JDK](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fpambrose%2Fintellij-github-toolbar-button%2Fmaster%2Fgradle%2Flibs.versions.toml&query=%24.versions.jvm&label=JDK&color=437291&logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/21/)
+[![Gradle](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fpambrose%2Fintellij-github-toolbar-button%2Fmaster%2Fgradle%2Flibs.versions.toml&query=%24.versions%5B%27gradle-wrapper%27%5D&label=Gradle&color=02303A&logo=gradle&logoColor=white)](https://gradle.org)
+[![License](https://img.shields.io/github/license/pambrose/intellij-github-toolbar-button?color=D22128&logo=apache&logoColor=white)](LICENSE)
 
 An IntelliJ IDEA plugin that adds a button to the main toolbar. Click it, and the project's
 GitHub page opens in your default browser.
