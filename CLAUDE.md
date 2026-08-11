@@ -48,12 +48,31 @@ release convention) and refuses to publish if the tag disagrees with `version` i
 `gradle.properties` — otherwise a `1.0.1` release would ship a ZIP built as `1.0.0`.
 
 Runs are slow on a cold cache: the build downloads a full IntelliJ IDEA distribution, and
-`verifyPlugin` fetches its own IDEs on top of that. Both jobs cap at 45 minutes and PR runs cancel
-their predecessors, because a private repository bills Actions minutes.
+`verifyPlugin` fetches its own IDEs on top of that. Both jobs cap at 45 minutes, and PR runs cancel
+their predecessors so a superseded commit does not hold a runner.
 
 Every `uses:` is pinned to a 40-character commit SHA with the version in a trailing comment — a
 mutable `@v6` tag can be repointed at new code, and `release.yml` holds `contents: write`. Don't
 "tidy" these back into tags. `.github/dependabot.yml` updates the SHA and the comment together.
+
+`release.yml` only ever runs on a tag, so nothing exercises it between releases and a mistake in it
+surfaces at the worst moment. Lint it before trusting a change:
+[actionlint](https://github.com/rhysd/actionlint) already caught one bug here — the `secrets` context
+is **not** available in a step-level `if`, which is why credential presence is turned into a step
+*output* and tested through that instead.
+
+### Marketplace publishing
+
+Publishing is opt-in and skips cleanly when unconfigured, so tags keep producing GitHub releases
+either way. It needs four repository secrets — `PUBLISH_TOKEN`, `CERTIFICATE_CHAIN`, `PRIVATE_KEY`,
+`PRIVATE_KEY_PASSWORD` — read from the environment in `build.gradle.kts` so they never enter the
+repository. With them absent, `signPlugin` reports `SKIPPED` and no `*-signed.zip` is produced.
+
+`META-INF/pluginIcon.svg` (and its `_dark` twin) must exist and be 40×40 — Marketplace rejects a
+plugin without one. They are deliberately *not* the Octocat: that mark is GitHub's.
+
+The first upload of a plugin has to be made by hand through the Marketplace UI; the API only accepts
+updates to a listing that already exists.
 
 ## Changelog and release notes
 
@@ -167,7 +186,9 @@ source set that keeps the provider.
   build script silently overrides the property, so don't reintroduce one.
 - `gradle/libs.versions.toml` also holds two versions Gradle never resolves as dependencies —
   `jvm` (read by `jvmToolchain`) and `gradle-wrapper` (read only by the Makefile's `sed`). Neither
-  appears in `dependencyUpdates`.
+  appears in `dependencyUpdates`. The README's version badges read this file live over
+  `raw.githubusercontent.com` (shields.io `dynamic/toml`), so renaming a key silently breaks a
+  badge — but no badge can fall out of date.
 - `since-build` is `252` with an open-ended `until-build`.
 - Every `.kt` file opens with the Apache 2.0 header (the boilerplate from the `LICENSE` appendix,
   verbatim) before the `package` line; new sources need it too. The `.kts` build scripts do not

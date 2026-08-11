@@ -57,6 +57,39 @@ intellijPlatform {
             }
         }
     }
+
+    // Marketplace only accepts signed uploads. Credentials come from the environment so they can be
+    // CI secrets and never touch the repository; with none set these tasks simply cannot run, which
+    // is why `release.yml` skips them rather than failing.
+    signing {
+        certificateChain = providers.environmentVariable("CERTIFICATE_CHAIN")
+        privateKey = providers.environmentVariable("PRIVATE_KEY")
+        password = providers.environmentVariable("PRIVATE_KEY_PASSWORD")
+    }
+
+    publishing {
+        token = providers.environmentVariable("PUBLISH_TOKEN")
+    }
+}
+
+changelog {
+    repositoryUrl = "https://github.com/pambrose/intellij-github-toolbar-button"
+    // Tags here carry no `v` (the release *title* does). The default prefix would make
+    // `patchChangelog` write compare/tag links like `.../compare/v1.0.0...HEAD`, which 404.
+    versionPrefix = ""
+    // Sections are written out by hand as they are needed, rather than emitting a fixed set of
+    // empty Added/Changed/Fixed headings into every release.
+    groups.empty()
+    // `patchChangelog` rewrites this file, and anything before the first version heading is only
+    // preserved if the plugin knows about it. Keep this in step with CHANGELOG.md's preamble.
+    introduction =
+        """
+        All notable changes to this project are documented in this file.
+
+        The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
+        adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Published artifacts are on the
+        [releases page](https://github.com/pambrose/intellij-github-toolbar-button/releases).
+        """.trimIndent()
 }
 
 tasks.test {
