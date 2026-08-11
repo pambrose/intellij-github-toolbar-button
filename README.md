@@ -34,7 +34,8 @@ button that takes you to the repository's home page.
   to open — and the tooltip says whether you are on a detached HEAD or simply have not pushed yet.
 - **Disabled when it can't help.** In a project with no Git repository, no remote, or a
   non-GitHub remote, the button greys out and its tooltip explains why. It never fails silently
-  and never opens a dialog you didn't ask for.
+  and never opens a dialog you didn't ask for. In the menus these commands hide instead of
+  appearing permanently greyed out — there is no slot worth holding there.
 - **Opens the repository home page** — `https://github.com/owner/repo` — not a branch or file
   URL, so it works even when your current branch has never been pushed.
 
@@ -178,6 +179,13 @@ suite stops running:
 
 These are plain unit tests that never start an IDE, so none of that machinery is needed. Adding
 platform integration tests later would mean a separate source set that keeps it.
+
+### Continuous integration
+
+Every pull request runs ktlint, the tests, and the IntelliJ Plugin Verifier, and lints the workflow
+files themselves with [actionlint](https://github.com/rhysd/actionlint) — the release workflow only
+runs on a tag, so nothing else would catch a mistake in it before a release. Formatting and workflow
+checks run first, so those failures come back in seconds rather than after a full IDE download.
 
 Built with the [IntelliJ Platform Gradle Plugin](https://github.com/JetBrains/intellij-platform-gradle-plugin).
 
