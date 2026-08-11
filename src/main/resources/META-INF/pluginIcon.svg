@@ -1,9 +1,11 @@
 <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- A toolbar button with a link leaving it: press here, a page opens elsewhere. Deliberately not
-       the Octocat — that mark belongs to GitHub, and Marketplace listings should not lean on a
-       third party's logo. -->
-  <rect x="4.25" y="13.25" width="22.5" height="22.5" rx="5.75" stroke="#3C3F41" stroke-width="2.5"/>
-  <path d="M18.5 21.5 L33 7" stroke="#3C3F41" stroke-width="2.5" stroke-linecap="round"/>
-  <path d="M23.5 5.75 H34.25 V16.5" stroke="#3C3F41" stroke-width="2.5" stroke-linecap="round"
+  <!-- A frame you are inside, and an arrow leaving it: the colour lands on the verb. Deliberately
+       not the Octocat — that mark belongs to GitHub, and Marketplace listings should not lean on a
+       third party's logo. Keep the geometry in step with pluginIcon_dark.svg; only the frame stroke
+       differs between the two. -->
+  <path d="M22 7 H9 a4 4 0 0 0-4 4 v20 a4 4 0 0 0 4 4 h20 a4 4 0 0 0 4-4 V18"
+        stroke="#3C3F41" stroke-width="3" stroke-linecap="round"/>
+  <path d="M19 21 L34 6" stroke="#D97706" stroke-width="3" stroke-linecap="round"/>
+  <path d="M25 5 H35 V15" stroke="#D97706" stroke-width="3" stroke-linecap="round"
         stroke-linejoin="round"/>
 </svg>

@@ -76,6 +76,13 @@ repository. With them absent, `signPlugin` reports `SKIPPED` and no `*-signed.zi
 `META-INF/pluginIcon.svg` (and its `_dark` twin) must exist and be 40×40 — Marketplace rejects a
 plugin without one. They are deliberately *not* the Octocat: that mark is GitHub's.
 
+The mark is a frame with an arrow leaving it, and the colour is on the arrow rather than the frame:
+the frame is what you are in, the arrow is what happens. Only the frame stroke differs between the
+two files (`#3C3F41` light, `#CED0D6` dark) — the amber `#D97706` is shared, because it clears the
+3:1 contrast floor for graphics on both grounds (3.19 on white, 4.33 on `#2B2D30`). Judge any
+replacement at 40×40, not enlarged: that is the size the Marketplace lists, and detail that survives
+at 80&nbsp;px routinely turns to mush at 40.
+
 The first upload of a plugin has to be made by hand through the Marketplace UI; the API only accepts
 updates to a listing that already exists.
 
