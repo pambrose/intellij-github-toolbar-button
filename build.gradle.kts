@@ -1,5 +1,4 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
-import org.gradle.internal.classpath.Instrumented.systemProperty
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -7,8 +6,7 @@ plugins {
     alias(libs.plugins.ben.manes.versions)
 }
 
-group = "com.pambrose"
-version = "1.0.0"
+// `group` and `version` are set in gradle.properties.
 
 repositories {
     mavenCentral()

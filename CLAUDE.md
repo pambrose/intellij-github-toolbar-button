@@ -9,9 +9,9 @@ repository page in the default browser. See `README.md` for user-facing behavior
 
 ## Commands
 
-A `Makefile` wraps these (`make help` lists targets): `build`, `test`, `test-one TEST=<class>`,
+A `Makefile` wraps these (`make help` lists targets): `build`, `tests`, `test-one TEST=<class>`,
 `clean`, `run`, `dist`, `verify`, `check`, `versions`, `check-wrapper`, `upgrade-wrapper`, `all`.
-Underlying Gradle tasks:
+Note the target is `tests`, not `test`. Underlying Gradle tasks:
 
 ```bash
 ./gradlew build              # compile + test
@@ -50,10 +50,14 @@ dependency and stays directly unit-testable:
   `www.github.com`, which is what rejects lookalikes like `evilgithub.com` and
   `github.com.evil.example` — don't loosen this to a `contains`/`endsWith` check.
 - **`GitHubRepoLocator`** — wraps git4idea. Selects the Git root owning the current file (innermost
-  wins when roots nest), then prefers the `origin` remote, falling back to the first remote that
-  parses as GitHub. Also produces the disabled-state tooltip text.
+  wins when roots nest, via longest matching path), falling back to the project's first root; then
+  prefers the `origin` remote, falling back to the first remote that parses as GitHub. Also produces
+  the disabled-state tooltip text. Root containment compares whole path segments, so `/code/alpha`
+  does not swallow `/code/alpha-two` — the same class of bug as the exact-host rule above.
 - **`OpenOnGitHubAction`** — thin `AnAction`. Must return `ActionUpdateThread.BGT`, because
-  `update()` reads Git repository state and that is not allowed on the EDT.
+  `update()` reads Git repository state and that is not allowed on the EDT. `update()` also pins
+  `isVisible = true` unconditionally and varies only `isEnabled`/`description`, so the button never
+  vacates its toolbar slot and neighbouring icons never shift between projects.
 
 `src/main/resources/META-INF/plugin.xml` registers the action into **both** toolbars. The group IDs
 differ in casing and this is easy to get wrong: new UI is `MainToolbarLeft` (lowercase *b*), classic
@@ -93,4 +97,12 @@ source set that keeps the provider.
   (`GitRepository`, `GitRemote`) are mocked directly — `GitRemote` is `final`, which MockK handles.
 - `gradle.properties` sets `kotlin.stdlib.default.dependency=false`; the platform ships its own
   kotlin-stdlib and adding Gradle's risks a version clash.
+- `group` and `version` live in `gradle.properties`, not `build.gradle.kts`. An assignment in the
+  build script silently overrides the property, so don't reintroduce one.
+- `gradle/libs.versions.toml` also holds two versions Gradle never resolves as dependencies —
+  `jvm` (read by `jvmToolchain`) and `gradle-wrapper` (read only by the Makefile's `sed`). Neither
+  appears in `dependencyUpdates`.
 - `since-build` is `252` with an open-ended `until-build`.
+- Every `.kt` file opens with the Apache 2.0 header (the boilerplate from the `LICENSE` appendix,
+  verbatim) before the `package` line; new sources need it too. The `.kts` build scripts do not
+  carry one.
