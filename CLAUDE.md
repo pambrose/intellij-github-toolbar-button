@@ -39,6 +39,22 @@ reports Gradle upgrades in its own "Gradle release-candidate updates" section in
 nothing resolves it, the catalog and `gradle-wrapper.properties` can drift silently — `make check`
 runs `check-wrapper` first to catch that.
 
+## CI
+
+`.github/workflows/build.yml` runs on pushes to `master`, on PRs, and on demand: wrapper-jar
+validation, `make check-wrapper`, `./gradlew build`, `verifyPlugin`, and it uploads the packaged
+ZIP as an artifact. `release.yml` fires on a `MAJOR.MINOR.PATCH` tag (no `v` prefix, matching the
+release convention) and refuses to publish if the tag disagrees with `version` in
+`gradle.properties` — otherwise a `1.0.1` release would ship a ZIP built as `1.0.0`.
+
+Runs are slow on a cold cache: the build downloads a full IntelliJ IDEA distribution, and
+`verifyPlugin` fetches its own IDEs on top of that. Both jobs cap at 45 minutes and PR runs cancel
+their predecessors, because a private repository bills Actions minutes.
+
+Every `uses:` is pinned to a 40-character commit SHA with the version in a trailing comment — a
+mutable `@v6` tag can be repointed at new code, and `release.yml` holds `contents: write`. Don't
+"tidy" these back into tags. `.github/dependabot.yml` updates the SHA and the comment together.
+
 ## Architecture
 
 Three units in `com.pambrose.githubtoolbar`, split so the non-trivial logic carries no IntelliJ
