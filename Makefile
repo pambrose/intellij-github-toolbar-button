@@ -9,6 +9,7 @@ WRAPPER_PROPS := gradle/wrapper/gradle-wrapper.properties
 # Deferred (=, not :=) so the sed only runs for the targets that read it, not on every make run.
 GRADLE_VERSION = $(shell sed -n 's/^gradle-wrapper = "\(.*\)"/\1/p' gradle/libs.versions.toml)
 WRAPPER_VERSION = $(shell sed -nE 's/^distributionUrl=.*gradle-(.+)-(bin|all)\.zip/\1/p' $(WRAPPER_PROPS))
+VERSION := $(shell grep '^version=' gradle.properties | cut -d= -f2)
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
