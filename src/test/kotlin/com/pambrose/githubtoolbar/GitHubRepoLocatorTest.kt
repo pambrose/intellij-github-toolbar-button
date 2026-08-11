@@ -17,6 +17,8 @@
 package com.pambrose.githubtoolbar
 
 import com.intellij.openapi.vfs.VirtualFile
+import git4idea.GitLocalBranch
+import git4idea.repo.GitBranchTrackInfo
 import git4idea.repo.GitRemote
 import git4idea.repo.GitRepository
 import io.kotest.core.spec.style.StringSpec
@@ -42,6 +44,21 @@ class GitHubRepoLocatorTest : StringSpec() {
 
     private fun fileAt(filePath: String): VirtualFile =
         mockk<VirtualFile>().also { every { it.path } returns filePath }
+
+    /**
+     * A repository sitting on [branchName], tracking an upstream when [pushed]. Detached HEAD is
+     * modelled by a null branch, which is what git4idea reports.
+     */
+    private fun repoOnBranch(branchName: String?, pushed: Boolean): GitRepository {
+        val repository = repo("/project", remote("origin", "https://github.com/owner/repo.git"))
+        val branch = branchName?.let { name ->
+            mockk<GitLocalBranch>().also { every { it.name } returns name }
+        }
+        every { repository.currentBranch } returns branch
+        every { repository.getBranchTrackInfo(any()) } returns
+            if (pushed && branchName != null) mockk<GitBranchTrackInfo>() else null
+        return repository
+    }
 
     init {
         "prefers the origin remote over other GitHub remotes" {
@@ -186,6 +203,30 @@ class GitHubRepoLocatorTest : StringSpec() {
             val repository = repo("/project", remote("origin", "https://github.elsewhere.com/owner/repo.git"))
 
             GitHubRepoLocator.repoUrlOf(repository, setOf("github.mycompany.com")) shouldBe null
+        }
+        // ---- Current branch, for the branch-specific destinations ----
+
+        "reports the current branch once it tracks an upstream" {
+            GitHubRepoLocator.pushedBranchOf(repoOnBranch("feature/x", pushed = true)) shouldBe "feature/x"
+        }
+
+        // A branch with no upstream has never been pushed, so every branch URL for it would 404.
+        "reports no branch when the current one has not been pushed" {
+            GitHubRepoLocator.pushedBranchOf(repoOnBranch("feature/x", pushed = false)) shouldBe null
+        }
+
+        "reports no branch on a detached HEAD" {
+            GitHubRepoLocator.pushedBranchOf(repoOnBranch(null, pushed = false)) shouldBe null
+        }
+
+        "explains a detached HEAD" {
+            GitHubRepoLocator.branchUnavailableReason(repoOnBranch(null, pushed = false)) shouldBe
+                "Not currently on a branch"
+        }
+
+        "explains an unpushed branch by name" {
+            GitHubRepoLocator.branchUnavailableReason(repoOnBranch("feature/x", pushed = false)) shouldBe
+                "Branch 'feature/x' has not been pushed"
         }
     }
 }

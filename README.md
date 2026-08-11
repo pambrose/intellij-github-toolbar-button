@@ -24,6 +24,10 @@ button that takes you to the repository's home page.
   **Pull Requests**, **Issues**, **Actions**, and **Releases** for the same repository. Each is a
   separate command, so any of them can take a keyboard shortcut. Right-clicking a file picks the
   Git root that owns it, which matters in a project with nested roots.
+- **Straight from a branch to its pull request.** **Open Pull Request for Current Branch** goes to
+  GitHub's create-PR page for the branch you are on, and **Open Current Branch on GitHub** opens its
+  tree view. Both stay disabled until the branch tracks an upstream — an unpushed branch has no page
+  to open — and the tooltip says whether you are on a detached HEAD or simply have not pushed yet.
 - **Disabled when it can't help.** In a project with no Git repository, no remote, or a
   non-GitHub remote, the button greys out and its tooltip explains why. It never fails silently
   and never opens a dialog you didn't ask for.

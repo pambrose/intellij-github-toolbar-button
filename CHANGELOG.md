@@ -8,6 +8,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Published
 
 ## [Unreleased]
 
+### Added
+
+- **Open Pull Request for Current Branch**, which opens GitHub's create-PR page for the branch you
+  are on, and **Open Current Branch on GitHub**, which opens its tree view. Both live in the
+  **GitHub** submenu and can take keyboard shortcuts.
+- Both stay disabled until the current branch tracks an upstream, because a branch that has never
+  been pushed has no page on GitHub. The tooltip distinguishes a detached HEAD from an unpushed
+  branch rather than leaving a dead entry unexplained.
+- Branch names are percent-encoded for the URL, except for `/`, which stays a path separator so
+  `feature/x` resolves correctly.
+
 ## [1.1.0] - 2026-08-10
 
 ### Added
