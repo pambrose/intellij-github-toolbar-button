@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.ben.manes.versions)
     alias(libs.plugins.changelog)
     alias(libs.plugins.kotlinter)
+    alias(libs.plugins.kover)
 }
 
 // `group` and `version` are set in gradle.properties.
@@ -121,6 +122,46 @@ tasks.test {
     classpath = classpath.filter { it.name != "testFramework.jar" }
 
     maxHeapSize = "1g"
+}
+
+// Coverage is measured over the layer the unit suite can actually reach. The action, group and
+// configurable classes are excluded because they cannot be exercised without a running Application
+// — the same boundary that keeps GitHubRepoLocator free of a settings lookup, and the reason
+// `tasks.test` above never boots an IDE. Including them would report a number that mostly tracks
+// how much platform glue exists: it would fall every time an action is added, with no change in how
+// well anything is tested.
+//
+// The three patterns are exactly the platform-registered types. Nothing in the measured layer
+// (GitHubUrlParser, GitHubDestination, GitHubBranchDestination, GitHubRepoLocator,
+// GitHubHostSettings) ends in Action, Group or Configurable, and nothing excluded fails to.
+//
+// **The trailing `*` on each pattern is required.** Nested and anonymous classes are named
+// `Outer$inner`, so a pattern ending at `Group` cannot match
+// `GitHubRemotesActionGroup$getChildren$1$1`. Measured rather than assumed: without the trailing
+// wildcard that anonymous action stayed in the report, and so did GitHubRemotesActionGroup itself.
+//
+// The bound sits well under the current 97% on purpose: it is there to catch a real regression, not
+// to be re-tightened after every commit. The three uncovered lines are exactly the platform
+// boundary — the `locate(Project, ...)` overload and `getInstance() = service()`, both of which
+// need a running Application and so are unreachable from these tests by construction.
+kover {
+    reports {
+        filters {
+            excludes {
+                classes(
+                    "com.pambrose.githubtoolbar.*Action*",
+                    "com.pambrose.githubtoolbar.*Group*",
+                    "com.pambrose.githubtoolbar.*Configurable*",
+                )
+            }
+        }
+
+        verify {
+            rule {
+                minBound(90)
+            }
+        }
+    }
 }
 
 // The IntelliJ Platform plugin registers both of these and wires neither into anything, so without

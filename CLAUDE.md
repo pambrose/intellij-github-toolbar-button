@@ -10,8 +10,9 @@ repository page in the default browser. See `README.md` for user-facing behavior
 ## Commands
 
 A `Makefile` wraps these (`make help` lists targets): `build`, `tests`, `test-one TEST=<class>`,
-`clean`, `run`, `dist`, `verify`, `check`, `lint`, `format`, `versions`, `check-wrapper`,
-`upgrade-wrapper`, `all`. Note the target is `tests`, not `test`. Underlying Gradle tasks:
+`clean`, `run`, `dist`, `verify`, `check`, `coverage`, `lint`, `format`, `versions`,
+`check-wrapper`, `upgrade-wrapper`, `all`. Note the target is `tests`, not `test`. Underlying
+Gradle tasks:
 
 ```bash
 ./gradlew build              # compile + test
@@ -20,6 +21,7 @@ A `Makefile` wraps these (`make help` lists targets): `build`, `tests`, `test-on
 ./gradlew buildPlugin        # installable ZIP -> build/distributions/
 ./gradlew verifyPlugin       # IntelliJ Plugin Verifier compatibility check
 ./gradlew dependencyUpdates  # newer stable releases -> build/dependencyUpdates/report.txt
+./gradlew koverHtmlReport    # coverage report -> build/reports/kover/html/index.html
 
 ./gradlew test --tests "com.pambrose.githubtoolbar.GitHubUrlParserTest"   # single test class
 ```
@@ -267,6 +269,37 @@ load-bearing — removing any one breaks the suite:
 
 These are plain unit tests that never boot an IDE. Platform integration tests would need their own
 source set that keeps the provider.
+
+## Coverage
+
+Kover, through `make coverage` (HTML report plus a printed total) and `koverVerify`, which the
+plugin attaches to `check` itself — so `make check` and CI's `./gradlew build` both enforce it with
+no wiring of our own. **Unlike `verifyPluginStructure` above, this one really does fail the build**:
+raising the bound above the actual figure exits 1 with `Rule violated: lines covered percentage
+is …`.
+
+**Pin `kover` by hand, and do not trust `dependencyUpdates` here.** It reads Maven Central, which
+still advertises **0.9.1** as newest; 0.9.1 cannot configure against Kotlin 2.4 at all, failing with
+`Could not get unknown property 'compileKotlinTask'`. The Gradle Plugin Portal carries the newer
+line, and **0.9.9** is what works.
+
+Coverage is measured over the layer the unit suite can reach. The exclusion patterns in
+`build.gradle.kts` drop the action, group and configurable classes, which need a running
+Application — the same boundary that keeps `GitHubRepoLocator` free of a settings lookup. Measuring
+everything would report roughly half, and that number would fall every time an action was added
+without anything being tested less well. **Each pattern needs a trailing `*`**: nested and anonymous
+classes are named `Outer$inner`, so a pattern ending at `Group` cannot match
+`GitHubRemotesActionGroup$getChildren$1$1`.
+
+Two things worth knowing about what the bound of 90 (against ~97% actual) does and does not catch.
+It catches untested *new* logic well — the measured layer is only about 100 lines, so eight
+uncovered additions breach it. It is a poor detector of *deleted tests*: removing the whole of
+`GitHubUrlParserTest` moves coverage only from 97.2% to 96.2%, because the locator and settings
+specs exercise the parser thoroughly on their way past. Do not read a green `koverVerify` as
+evidence that the specs are still there.
+
+The uncovered remainder inside the measured layer is exactly the platform boundary —
+`locate(Project, …)` and `getInstance() = service()`, both of which need a running Application.
 
 ## Conventions
 

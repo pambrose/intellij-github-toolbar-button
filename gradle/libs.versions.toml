@@ -10,6 +10,9 @@ mockk = "1.14.11"
 benManesVersions = "0.61.0"
 changelog = "2.5.0"
 kotlinter = "5.7.0"
+# 0.9.9, not the 0.9.1 that Maven Central still reports as newest: 0.9.1 cannot build against
+# Kotlin 2.4 — it reads `compileKotlinTask`, which that version of the Kotlin plugin removed.
+kover = "0.9.9"
 
 [libraries]
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
@@ -22,3 +25,4 @@ intellij-platform = { id = "org.jetbrains.intellij.platform", version.ref = "int
 ben-manes-versions = { id = "io.github.ben-manes.versions", version.ref = "benManesVersions" }
 changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }
 kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinter" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }

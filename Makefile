@@ -1,9 +1,10 @@
-.PHONY: help build tests test-one clean run dist verify check versions check-wrapper \
+.PHONY: help build tests test-one clean run dist verify check coverage versions check-wrapper \
         upgrade-wrapper changelog patch-changelog lint format all _require-gradle-version
 .DEFAULT_GOAL := help
 
 GRADLE := ./gradlew
 DIST_DIR := build/distributions
+COVERAGE_REPORT := build/reports/kover/html/index.html
 WRAPPER_PROPS := gradle/wrapper/gradle-wrapper.properties
 
 # Deferred (=, not :=) so the sed only runs for the targets that read it, not on every make run.
@@ -49,6 +50,15 @@ verify: ## Check binary compatibility with the supported IDE range
 # because nothing attaches it to check — it downloads its own IDEs and is too slow to run by default.
 check: check-wrapper ## Run ktlint, the tests, and the plugin verifier
 	$(GRADLE) check verifyPlugin
+
+# Coverage is measured over the layer these tests can reach; build.gradle.kts excludes the action,
+# group and configurable classes, which need a running IDE. `check` already runs koverVerify, so
+# this target is for reading the detail, not for gating.
+coverage: ## Report test coverage and write the HTML report
+	$(GRADLE) koverHtmlReport koverLog
+	@echo
+	@echo "Full report:"
+	@ls -1 $(COVERAGE_REPORT)
 
 lint: ## Report ktlint violations
 	$(GRADLE) lintKotlin
