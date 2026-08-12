@@ -1,6 +1,7 @@
 # GitHub Toolbar Button
 
 [![Build](https://github.com/pambrose/intellij-github-toolbar-button/actions/workflows/build.yml/badge.svg)](https://github.com/pambrose/intellij-github-toolbar-button/actions/workflows/build.yml)
+[![Coverage](https://img.shields.io/codecov/c/github/pambrose/intellij-github-toolbar-button/master?logo=codecov&logoColor=white&label=coverage&color=F01F7A)](https://codecov.io/gh/pambrose/intellij-github-toolbar-button)
 [![Release](https://img.shields.io/github/v/release/pambrose/intellij-github-toolbar-button?logo=github&color=2ea44f)](https://github.com/pambrose/intellij-github-toolbar-button/releases/latest)
 [![IntelliJ IDEA](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fpambrose%2Fintellij-github-toolbar-button%2Fmaster%2Fgradle%2Flibs.versions.toml&query=%24.versions.intellijIdea&suffix=%2B&label=IntelliJ%20IDEA&color=000000&logo=intellijidea&logoColor=white)](https://www.jetbrains.com/idea/)
 [![Kotlin](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fpambrose%2Fintellij-github-toolbar-button%2Fmaster%2Fgradle%2Flibs.versions.toml&query=%24.versions.kotlin&label=Kotlin&color=7F52FF&logo=kotlin&logoColor=white)](https://kotlinlang.org)

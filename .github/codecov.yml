@@ -1,0 +1,22 @@
+# Codecov reports the numbers; `koverVerify` in build.gradle.kts is what enforces them, failing
+# `make check` and the build alike. Both statuses below are therefore informational: they annotate a
+# pull request without being able to block it, so there is one coverage gate rather than two that
+# can disagree with each other.
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true
+
+# Only comment when the numbers actually moved. A comment repeating an unchanged figure on every
+# push is noise on a repository this size.
+comment:
+  require_changes: true
+
+# Nothing to ignore here on purpose. The action, group and configurable classes are excluded at
+# measurement time in build.gradle.kts, because they cannot run without an Application, so they
+# never reach the report Codecov is given. Keeping the exclusion in one place is deliberate — two
+# lists that must agree are the failure this repository has already been bitten by elsewhere.

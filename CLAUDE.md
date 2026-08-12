@@ -79,6 +79,22 @@ a third-party action or an install script piped into a shell, which would underc
 SHA-pinning every `uses:` above it. Bumping the version means bumping the checksum with it; both
 live in that step's `env`.
 
+### Coverage reporting
+
+`build.yml` renders Kover's XML report and uploads it to Codecov. Opt-in on `CODECOV_TOKEN`,
+skipping cleanly when the secret is absent, in exactly the shape the Marketplace steps below use —
+and for the same reason: an unconfigured secret should not redden every pull request. `secrets` is
+still unavailable in a step `if`, so presence becomes a step output and the `if` tests that.
+
+**Codecov reports; `koverVerify` gates.** `fail_ci_if_error` is `false`, and `.github/codecov.yml`
+marks both the project and patch statuses `informational`, so Codecov annotates a pull request but
+cannot block it. That is deliberate: a third-party service being down should not fail a build whose
+coverage gate has already passed, and two gates that can disagree are worse than one.
+
+The report Codecov receives holds only the five measured files, because the exclusions are applied
+at measurement time in `build.gradle.kts`. `codecov.yml` therefore carries no `ignore:` list — one
+exclusion list, in one place.
+
 ### Marketplace publishing
 
 Publishing is opt-in and skips cleanly when unconfigured, so tags keep producing GitHub releases
