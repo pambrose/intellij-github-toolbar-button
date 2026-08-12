@@ -13,6 +13,10 @@
 An IntelliJ IDEA plugin that adds a button to the main toolbar. Click it, and the project's
 GitHub page opens in your default browser.
 
+**Install it from the
+[JetBrains Marketplace](https://plugins.jetbrains.com/plugin/33486-github-toolbar-button)** — or
+search for **GitHub Toolbar Button** in **Settings → Plugins → Marketplace**.
+
 ## What it does
 
 IntelliJ's bundled GitHub integration can open the *current file at the current revision* from a
@@ -86,19 +90,26 @@ Enterprise repository URLs keep their own host — `https://github.mycompany.com
 
 ### From the JetBrains Marketplace
 
-The plugin is listed as
-[GitHub Toolbar Button](https://plugins.jetbrains.com/plugin/33486-github-toolbar-button). In
-IntelliJ IDEA, open **Settings → Plugins → Marketplace**, search for **GitHub Toolbar Button**, and
-click **Install**.
+The usual way, and the one that keeps itself up to date. In IntelliJ IDEA, open **Settings →
+Plugins → Marketplace**, search for **GitHub Toolbar Button**, and click **Install**. The listing is
+[here](https://plugins.jetbrains.com/plugin/33486-github-toolbar-button) if you would rather browse
+it first.
+
+Installed this way, new versions arrive through the IDE's own plugin updates — there is nothing to
+download by hand.
 
 ### From a release ZIP
 
-Every release also attaches an installable ZIP. Download it from the
+If you would rather not go through the Marketplace, every release attaches an installable ZIP.
+Download it from the
 [releases page](https://github.com/pambrose/intellij-github-toolbar-button/releases/latest), then in
 IntelliJ IDEA open **Settings → Plugins**, click the **⚙️ gear icon**, choose **Install Plugin from
-Disk…**, select the ZIP, and restart when prompted.
+Disk…**, select the ZIP, and restart when prompted. Installed this way the plugin will not update
+itself; switch to the Marketplace copy if you would like it to.
 
 ### From source
+
+For working on the plugin rather than just using it:
 
 ```bash
 git clone https://github.com/pambrose/intellij-github-toolbar-button.git

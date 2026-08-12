@@ -123,10 +123,17 @@ replacement at 40×40, not enlarged: that is the size the Marketplace lists, and
 at 80&nbsp;px routinely turns to mush at 40.
 
 The first upload of a plugin has to be made by hand through the Marketplace UI; the API only accepts
-updates to a listing that already exists. **That step is done** — the listing is plugin `33486`,
-`com.pambrose.github-toolbar-button`, currently showing 1.1.0 — so `publishPlugin` can now update it
-and every later release goes out through `release.yml` unattended. The README links and the
-Marketplace version badge both key off that id.
+updates to a listing that already exists. **That step is done.** The plugin is live as
+[33486](https://plugins.jetbrains.com/plugin/33486-github-toolbar-button)
+(`com.pambrose.github-toolbar-button`) — searchable and installable from inside the IDE — so
+`publishPlugin` updates the existing listing and every later release goes out through `release.yml`
+unattended. The README links and the Marketplace version badge both key off that id, and README
+leads with Marketplace installation because that copy updates itself.
+
+Do not read `approve` from `plugins.jetbrains.com/api/plugins/33486` as "is it live yet": it reports
+`false` for this plugin while the listing is demonstrably public and installable, and `downloads`
+sits at 0 well after publication. The version badge endpoint
+(`img.shields.io/jetbrains/plugin/v/33486`) is the honest signal — it renders the published version.
 
 ## Formatting
 
