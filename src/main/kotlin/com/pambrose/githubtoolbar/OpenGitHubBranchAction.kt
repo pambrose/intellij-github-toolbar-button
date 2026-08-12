@@ -21,6 +21,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import git4idea.repo.GitRepository
 import git4idea.repo.GitRepositoryManager
@@ -35,10 +36,13 @@ import git4idea.repo.GitRepositoryManager
  *
  * Subclasses exist only to bind a destination: the platform instantiates actions reflectively and
  * can call only a no-argument constructor.
+ *
+ * [DumbAware] for the same reason as [OpenGitHubDestinationAction]: nothing here reads an index.
  */
 abstract class OpenGitHubBranchAction(
     private val destination: GitHubBranchDestination,
-) : AnAction() {
+) : AnAction(),
+    DumbAware {
     // Reads Git repository state, which is not allowed on the EDT.
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 

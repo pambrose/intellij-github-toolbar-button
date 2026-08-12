@@ -46,10 +46,15 @@ class GitHubRemotesActionGroup :
         e.presentation.isVisible = remotes(e).size > 1
     }
 
+    // The children are [DumbAware] as well as the group. Marking only the group is worse than
+    // marking neither: the submenu would open and list the remotes during indexing, and then every
+    // entry in it would refuse the click.
     override fun getChildren(e: AnActionEvent?): Array<AnAction> =
         remotes(e)
             .map { remote ->
-                object : AnAction("Open '${remote.name}' on GitHub", "Open ${remote.url} in the browser", null) {
+                object :
+                    AnAction("Open '${remote.name}' on GitHub", "Open ${remote.url} in the browser", null),
+                    DumbAware {
                     override fun actionPerformed(event: AnActionEvent) = BrowserUtil.browse(remote.url)
                 }
             }.toTypedArray()
