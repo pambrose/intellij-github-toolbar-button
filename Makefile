@@ -42,8 +42,13 @@ dist: ## Build the installable plugin ZIP
 verify: ## Check binary compatibility with the supported IDE range
 	$(GRADLE) verifyPlugin
 
+# Gradle's `check` lifecycle rather than the individual tasks: it already covers lintKotlin (wired
+# in by Kotlinter) and test, and it picks up verifyPluginProjectConfiguration and
+# verifyPluginStructure, which build.gradle.kts attaches to it. Naming the tasks by hand instead
+# would leave this target running less than CI's `./gradlew build` does. verifyPlugin is separate
+# because nothing attaches it to check — it downloads its own IDEs and is too slow to run by default.
 check: check-wrapper ## Run ktlint, the tests, and the plugin verifier
-	$(GRADLE) lintKotlin test verifyPlugin
+	$(GRADLE) check verifyPlugin
 
 lint: ## Report ktlint violations
 	$(GRADLE) lintKotlin

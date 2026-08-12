@@ -37,8 +37,15 @@ jobs:
             exit 1
           fi
 
-      # A release is public and permanent, so the compatibility check runs here too rather than
-      # trusting that the tagged commit is the one master last verified.
+      # A release is public and permanent, so the checks run here too rather than trusting that the
+      # tagged commit is the one master last verified — nothing stops a tag landing on a commit that
+      # was never on a green master. `build` is the one that runs ktlint and the tests: neither
+      # `buildPlugin` nor `verifyPlugin` depends on `test`, so without this step a tag could ship to
+      # both the GitHub release and the Marketplace with the suite unrun. It goes first because it
+      # fails in seconds, before the verifier spends minutes fetching its IDEs.
+      - name: Build and test
+        run: ./gradlew build
+
       - name: Verify plugin compatibility
         run: ./gradlew verifyPlugin
 
