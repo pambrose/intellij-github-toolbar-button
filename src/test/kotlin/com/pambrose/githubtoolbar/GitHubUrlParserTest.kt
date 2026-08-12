@@ -206,9 +206,15 @@ class GitHubUrlParserTest : StringSpec() {
                 "github.mycompany.com"
         }
 
-        "normalizes casing, surrounding space, credentials, and a port" {
+        "normalizes casing, surrounding space, credentials, a path, and a port" {
             GitHubUrlParser.normalizeHost("  GitHub.MyCompany.COM  ") shouldBe "github.mycompany.com"
             GitHubUrlParser.normalizeHost("git@github.mycompany.com") shouldBe "github.mycompany.com"
+            // What `git remote -v` prints for an scp-style remote, so the likeliest paste of all.
+            GitHubUrlParser.normalizeHost("git@github.mycompany.com:owner/repo.git") shouldBe "github.mycompany.com"
+            // Pins the *order* of the reduction: the path is cut away first, so a later '@'
+            // cannot be mistaken for the end of the credentials. Strip credentials first and this
+            // returns "po", which is a well-formed hostname and so fails silently.
+            GitHubUrlParser.normalizeHost("https://github.mycompany.com/owner/re@po") shouldBe "github.mycompany.com"
             GitHubUrlParser.normalizeHost("github.mycompany.com:8443") shouldBe "github.mycompany.com"
             GitHubUrlParser.normalizeHost("ssh://git@github.mycompany.com:22/owner/repo.git") shouldBe
                 "github.mycompany.com"

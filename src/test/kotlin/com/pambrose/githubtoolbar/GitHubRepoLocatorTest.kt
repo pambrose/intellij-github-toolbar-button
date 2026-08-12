@@ -126,6 +126,17 @@ class GitHubRepoLocatorTest : StringSpec() {
             selected shouldBe beta
         }
 
+        // The action is registered into ProjectViewPopupMenu, so right-clicking a root hands over
+        // that directory itself: its path equals the root's rather than sitting below it. Reduce
+        // `isUnder` to a `startsWith("$root/")` test and this silently falls back to the first
+        // repository, opening the wrong project's page with every other test still green.
+        "picks the repository whose root is the context file" {
+            val alpha = repo("/code/alpha", remote("origin", "https://github.com/owner/alpha.git"))
+            val beta = repo("/code/beta", remote("origin", "https://github.com/owner/beta.git"))
+
+            GitHubRepoLocator.selectRepository(listOf(alpha, beta), fileAt("/code/beta")) shouldBe beta
+        }
+
         "picks the innermost repository when roots are nested" {
             val outer = repo("/code/outer", remote("origin", "https://github.com/owner/outer.git"))
             val inner = repo("/code/outer/inner", remote("origin", "https://github.com/owner/inner.git"))
@@ -181,6 +192,16 @@ class GitHubRepoLocatorTest : StringSpec() {
 
             GitHubRepoLocator.unavailableReason(listOf(repository)) shouldBe
                 "No github.com remote found"
+        }
+
+        // `all`, not `any`: a multi-root project can hold a bare root beside a remoted one, and
+        // "no remotes" would then be a lie that sends the user to `git remote add` when the real
+        // problem is the host. With a single repository the two are indistinguishable.
+        "explains the GitHub reason when only some repositories lack remotes" {
+            val bare = repo("/code/bare")
+            val gitlab = repo("/code/other", remote("origin", "https://gitlab.com/owner/repo.git"))
+
+            GitHubRepoLocator.unavailableReason(listOf(bare, gitlab)) shouldBe "No github.com remote found"
         }
 
         // ---- GitHub Enterprise hosts, as supplied by GitHubHostSettings in production ----
