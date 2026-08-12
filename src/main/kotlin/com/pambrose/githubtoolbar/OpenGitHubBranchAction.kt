@@ -17,14 +17,8 @@
 package com.pambrose.githubtoolbar
 
 import com.intellij.ide.BrowserUtil
-import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.project.DumbAware
-import com.intellij.openapi.project.Project
 import git4idea.repo.GitRepository
-import git4idea.repo.GitRepositoryManager
 
 /**
  * Opens a [GitHubBranchDestination] for the repository's current branch.
@@ -36,71 +30,41 @@ import git4idea.repo.GitRepositoryManager
  *
  * Subclasses exist only to bind a destination: the platform instantiates actions reflectively and
  * can call only a no-argument constructor.
- *
- * [DumbAware] for the same reason as [OpenGitHubDestinationAction]: nothing here reads an index.
  */
 abstract class OpenGitHubBranchAction(
     private val destination: GitHubBranchDestination,
-) : AnAction(),
-    DumbAware {
-    // Reads Git repository state, which is not allowed on the EDT.
-    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
-
-    override fun update(e: AnActionEvent) {
-        val presentation = e.presentation
-        val project = e.project
-
-        if (project == null) {
-            presentation.isEnabled = false
-            presentation.isVisible = !e.isFromContextMenu
-            presentation.description = "No project is open"
-            return
-        }
-
-        val repository = selectedRepository(e, project)
-        val url = repository?.let { branchUrl(it) }
-
-        presentation.isEnabled = url != null
-        presentation.isVisible = url != null || !e.isFromContextMenu
-        presentation.description = when {
-            url != null -> {
-                "Open $url in the browser"
-            }
-
-            // A repository was found but the branch is unusable, so explain the branch rather than
-            // repeating the generic "no GitHub remote" reason.
-            repository != null && GitHubRepoLocator.repoUrlOf(repository, allowedHosts()) != null -> {
-                GitHubRepoLocator.branchUnavailableReason(repository)
-            }
-
-            else -> {
-                GitHubRepoLocator.unavailableReason(GitRepositoryManager.getInstance(project).repositories)
-            }
-        }
-    }
-
-    override fun actionPerformed(e: AnActionEvent) {
-        val project = e.project ?: return
-        val repository = selectedRepository(e, project) ?: return
-        BrowserUtil.browse(branchUrl(repository) ?: return)
-    }
-
-    private fun selectedRepository(
+) : GitHubUrlAction() {
+    override fun urlFor(
         e: AnActionEvent,
-        project: Project,
-    ): GitRepository? =
-        GitHubRepoLocator.selectRepository(
-            GitRepositoryManager.getInstance(project).repositories,
-            e.getData(CommonDataKeys.VIRTUAL_FILE),
-        )
+        repositories: List<GitRepository>,
+    ): String? {
+        val repository = GitHubRepoLocator.selectRepository(repositories, contextFile(e)) ?: return null
+        return branchUrl(repository)
+    }
+
+    override fun describe(url: String): String = "Open $url in the browser"
+
+    override fun perform(url: String) = BrowserUtil.browse(url)
+
+    override fun unavailableReason(
+        e: AnActionEvent,
+        repositories: List<GitRepository>,
+    ): String {
+        val repository = GitHubRepoLocator.selectRepository(repositories, contextFile(e))
+        // A repository was found and it is on GitHub, so the branch is what is unusable: explain
+        // that rather than repeating the generic "no GitHub remote" reason.
+        return if (repository != null && GitHubRepoLocator.repoUrlOf(repository, allowedHosts()) != null) {
+            GitHubRepoLocator.branchUnavailableReason(repository)
+        } else {
+            GitHubRepoLocator.unavailableReason(repositories)
+        }
+    }
 
     private fun branchUrl(repository: GitRepository): String? {
         val repoUrl = GitHubRepoLocator.repoUrlOf(repository, allowedHosts()) ?: return null
         val branch = GitHubRepoLocator.pushedBranchOf(repository) ?: return null
         return destination.urlFor(repoUrl, branch)
     }
-
-    private fun allowedHosts(): Set<String> = GitHubHostSettings.getInstance().allowedHosts
 }
 
 class OpenGitHubCurrentBranchAction : OpenGitHubBranchAction(GitHubBranchDestination.BRANCH)

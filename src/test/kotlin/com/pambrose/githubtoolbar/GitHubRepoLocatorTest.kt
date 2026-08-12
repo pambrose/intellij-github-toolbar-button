@@ -141,6 +141,30 @@ class GitHubRepoLocatorTest : StringSpec() {
             GitHubRepoLocator.repoUrlOf(repository) shouldBe null
         }
 
+        // ---- Root selection and remote resolution together, which is what the action layer asks
+        // for. This overload takes the repositories rather than a Project, so unlike its sibling it
+        // needs no platform service and can be tested here. ----
+
+        "locates the URL of the repository owning the context file" {
+            val alpha = repo("/code/alpha", remote("origin", "https://github.com/owner/alpha.git"))
+            val beta = repo("/code/beta", remote("origin", "https://github.com/owner/beta.git"))
+
+            GitHubRepoLocator.locate(listOf(alpha, beta), fileAt("/code/beta/src/Main.kt")) shouldBe
+                "https://github.com/owner/beta"
+        }
+
+        "locates nothing when there are no repositories" {
+            GitHubRepoLocator.locate(emptyList(), null) shouldBe null
+        }
+
+        "locates an enterprise repository only once its host is allowed" {
+            val repository = repo("/project", remote("origin", "https://github.mycompany.com/owner/repo.git"))
+
+            GitHubRepoLocator.locate(listOf(repository), null) shouldBe null
+            GitHubRepoLocator.locate(listOf(repository), null, setOf("github.mycompany.com")) shouldBe
+                "https://github.mycompany.com/owner/repo"
+        }
+
         "picks the repository whose root contains the context file" {
             val alpha = repo("/code/alpha", remote("origin", "https://github.com/owner/alpha.git"))
             val beta = repo("/code/beta", remote("origin", "https://github.com/owner/beta.git"))

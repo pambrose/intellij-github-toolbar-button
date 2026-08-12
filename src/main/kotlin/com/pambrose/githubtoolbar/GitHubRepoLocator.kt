@@ -44,11 +44,20 @@ object GitHubRepoLocator {
         project: Project,
         contextFile: VirtualFile?,
         allowedHosts: Set<String> = GitHubUrlParser.DEFAULT_HOSTS,
-    ): String? {
-        val repositories = GitRepositoryManager.getInstance(project).repositories
-        val repository = selectRepository(repositories, contextFile) ?: return null
-        return repoUrlOf(repository, allowedHosts)
-    }
+    ): String? = locate(GitRepositoryManager.getInstance(project).repositories, contextFile, allowedHosts)
+
+    /**
+     * As [locate], for a caller that already holds the project's repositories — which the action
+     * layer does, having needed them for the disabled-state tooltip anyway.
+     *
+     * Unlike the [Project] overload this one touches no platform service, so it is directly
+     * unit-testable against mocked git4idea types.
+     */
+    fun locate(
+        repositories: List<GitRepository>,
+        contextFile: VirtualFile?,
+        allowedHosts: Set<String> = GitHubUrlParser.DEFAULT_HOSTS,
+    ): String? = selectRepository(repositories, contextFile)?.let { repoUrlOf(it, allowedHosts) }
 
     /**
      * Resolves the GitHub page for a single repository, preferring the `origin` remote.
