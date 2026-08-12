@@ -79,6 +79,32 @@ a third-party action or an install script piped into a shell, which would underc
 SHA-pinning every `uses:` above it. Bumping the version means bumping the checksum with it; both
 live in that step's `env`.
 
+### Coverage reporting
+
+`build.yml` renders Kover's XML report and uploads it to Codecov. Opt-in on `CODECOV_TOKEN`,
+skipping cleanly when the secret is absent, in exactly the shape the Marketplace steps below use —
+and for the same reason: an unconfigured secret should not redden every pull request. `secrets` is
+still unavailable in a step `if`, so presence becomes a step output and the `if` tests that.
+
+**Codecov reports; `koverVerify` gates.** `fail_ci_if_error` is `false`, and `.github/codecov.yml`
+marks both the project and patch statuses `informational`, so Codecov annotates a pull request but
+cannot block it. That is deliberate: a third-party service being down should not fail a build whose
+coverage gate has already passed, and two gates that can disagree are worse than one.
+
+The report Codecov receives holds only the five measured files, because the exclusions are applied
+at measurement time in `build.gradle.kts`. `codecov.yml` therefore carries no `ignore:` list — one
+exclusion list, in one place.
+
+**Expect the badge and `make coverage` to disagree, by a couple of points.** Kover reported 97.2%
+(103/106) for the same upload that Codecov processed as 94.3% (99 hits, 3 misses, 105 lines): Kover
+is counting whole lines, Codecov also counts partially-covered ones. Neither is wrong and neither
+needs correcting — but the bound in `build.gradle.kts` is checked against *Kover's* figure, so read
+a near-miss on the badge against that, not against 90.
+
+No `fixes:` entry is needed in `codecov.yml`. Codecov resolved the report's
+`com/pambrose/githubtoolbar/…` paths onto `src/main/kotlin/…` unaided — verified against the API for
+the first upload, all five files matched.
+
 ### Marketplace publishing
 
 Publishing is opt-in and skips cleanly when unconfigured, so tags keep producing GitHub releases
