@@ -96,8 +96,13 @@
 
         <!-- A submenu rather than five flat entries, which would swamp the host menus. Each action
              keeps a self-describing name so it still reads correctly in Find Action and Keymap,
-             where the surrounding submenu is not visible. -->
+             where the surrounding submenu is not visible.
+
+             The class is what makes the submenu hide itself once every child has hidden; a plain
+             DefaultActionGroup would grey it out and keep it, which is the dead entry the children
+             take care to avoid. -->
         <group id="com.pambrose.githubtoolbar.DestinationsMenu"
+               class="com.pambrose.githubtoolbar.GitHubDestinationsGroup"
                text="GitHub"
                popup="true"
                icon="AllIcons.Vcs.Vendors.Github">

@@ -176,6 +176,14 @@ dependency and stays directly unit-testable:
   itself below two remotes, since offering a choice of one is noise. Everything else in the plugin
   resolves a *single* URL preferring `origin`; this exists because that silently hides `upstream` in
   a fork.
+- **`GitHubDestinationsGroup`** — the class behind the `GitHub` submenu, and it exists for one
+  line: `templatePresentation.isHideGroupIfEmpty = true`. The children hide themselves in a context
+  menu, but the platform's default for an emptied *popup group* is to grey it out and keep it
+  (`isDisableGroupIfEmpty` is on by default, `isHideGroupIfEmpty` is not), which leaves behind
+  exactly the dead entry the children avoid. Set the flag from the constructor: overriding
+  `createTemplatePresentation()`, the way `DefaultCompactActionGroup` does, is `@ApiStatus.Internal`
+  and **fails `make verify`** with `INTERNAL_API_USAGES` — verified, not assumed. `compact="true"`
+  is not a substitute either; it only hides *disabled* children.
 - **`CopyGitHubUrlAction`** — same resolution as `OpenOnGitHubAction`, but writes to the clipboard
   via `CopyPasteManager.copyTextToClipboard` instead of opening a browser.
 - **`OpenGitHubDestinationAction`** — holds all the action behaviour, parameterized by a
@@ -189,6 +197,15 @@ dependency and stays directly unit-testable:
   hides instead, because a permanently dead menu entry is only clutter. Use `isFromContextMenu`, not
   `ActionPlaces.isPopupPlace` — the Plugin Verifier flags the latter as deprecated, and
   `make verify` reports it.
+
+**Everything registered in `plugin.xml` implements `DumbAware`**, and `PluginRegistrationTest`
+enforces it by walking the XML. Nothing here reads an index, so nothing should be refused while one
+is being built — and the failure is nastier than it sounds. `ActionUtil.performAction` carries the
+dumb-mode guard, so the menu, keymap and Find Action paths refuse a non-dumb-aware action, while a
+toolbar `ActionButton` does not go through it and keeps working. `update()` meanwhile still reports
+the action as enabled, because it reads only git4idea state. The result is an action that looks
+available, works from the toolbar, and silently does nothing everywhere else. Marking only a group
+is worse than marking nothing: its submenu opens and lists entries that then refuse the click.
 
 `src/main/resources/META-INF/plugin.xml` registers the action into **both** toolbars plus two menus
 (`Vcs.Operations.Popup`, `ProjectViewPopupMenu`). The toolbar group IDs differ in casing and this is

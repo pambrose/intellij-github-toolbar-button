@@ -21,6 +21,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import git4idea.repo.GitRepositoryManager
 
@@ -35,10 +36,17 @@ import git4idea.repo.GitRepositoryManager
  * On a toolbar the action is present in every project — when no GitHub page can be resolved it
  * stays visible but disabled, and its tooltip explains why. In a menu it hides instead, since there
  * is no slot worth holding there.
+ *
+ * [DumbAware] because resolving a GitHub URL reads git4idea state and never an index. Without it
+ * the platform refuses the action for the whole of indexing — but only through the menu, keymap and
+ * Find Action paths, which route via `ActionUtil.performAction` and its dumb-mode guard. A toolbar
+ * button does not, so the same action would keep working there and silently do nothing everywhere
+ * else, with `update()` still reporting it as enabled.
  */
 abstract class OpenGitHubDestinationAction(
     private val destination: GitHubDestination,
-) : AnAction() {
+) : AnAction(),
+    DumbAware {
     // Reads Git repository state, which is not allowed on the EDT.
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 

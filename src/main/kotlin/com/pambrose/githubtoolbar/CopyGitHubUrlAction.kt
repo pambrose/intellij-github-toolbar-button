@@ -21,6 +21,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.ide.CopyPasteManager
+import com.intellij.openapi.project.DumbAware
 import git4idea.repo.GitRepositoryManager
 
 /**
@@ -29,8 +30,12 @@ import git4idea.repo.GitRepositoryManager
  *
  * Resolution is identical to [OpenOnGitHubAction], so the copied URL is always the page the button
  * would have opened.
+ *
+ * [DumbAware] for the same reason as [OpenGitHubDestinationAction]: nothing here reads an index.
  */
-class CopyGitHubUrlAction : AnAction() {
+class CopyGitHubUrlAction :
+    AnAction(),
+    DumbAware {
     // Reads Git repository state, which is not allowed on the EDT.
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 

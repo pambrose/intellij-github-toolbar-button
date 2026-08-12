@@ -15,6 +15,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Published
   created from, or pushed to, a differently named upstream — `git checkout -b fix origin/main`, or
   `git push -u origin HEAD:release-2026` — and in those cases both actions were enabled and then
   opened a page that does not exist.
+- Every command now works while the IDE is building its indexes. None of them reads an index, but
+  none was marked as such, so the platform refused them for the whole of indexing — from the VCS
+  Operations popup, the Project View context menu, a keyboard shortcut, or Find Action — while still
+  showing them as enabled. The toolbar button was unaffected, which is why the two disagreed right
+  after opening a project or switching branches.
+- The **GitHub** submenu now hides itself in a context menu when it has nothing to offer, instead of
+  appearing greyed out. Its entries already hid themselves individually; the submenu holding them
+  did not, so an empty **GitHub ▸** was left behind in projects with no GitHub remote.
 
 ## [1.1.0] - 2026-08-11
 
