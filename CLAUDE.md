@@ -95,6 +95,16 @@ The report Codecov receives holds only the five measured files, because the excl
 at measurement time in `build.gradle.kts`. `codecov.yml` therefore carries no `ignore:` list — one
 exclusion list, in one place.
 
+**Expect the badge and `make coverage` to disagree, by a couple of points.** Kover reported 97.2%
+(103/106) for the same upload that Codecov processed as 94.3% (99 hits, 3 misses, 105 lines): Kover
+is counting whole lines, Codecov also counts partially-covered ones. Neither is wrong and neither
+needs correcting — but the bound in `build.gradle.kts` is checked against *Kover's* figure, so read
+a near-miss on the badge against that, not against 90.
+
+No `fixes:` entry is needed in `codecov.yml`. Codecov resolved the report's
+`com/pambrose/githubtoolbar/…` paths onto `src/main/kotlin/…` unaided — verified against the API for
+the first upload, all five files matched.
+
 ### Marketplace publishing
 
 Publishing is opt-in and skips cleanly when unconfigured, so tags keep producing GitHub releases
