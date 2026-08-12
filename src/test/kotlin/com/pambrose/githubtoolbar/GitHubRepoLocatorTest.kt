@@ -99,6 +99,19 @@ class GitHubRepoLocatorTest : StringSpec() {
             GitHubRepoLocator.repoUrlOf(repository) shouldBe "https://github.com/upstream-owner/repo"
         }
 
+        // The fallback scans in declared order, so a GitHub remote declared *before* a non-GitHub
+        // origin still wins. This is the case that separates "prefer origin" from "sort origin
+        // first and take the head", and the two must agree on it.
+        "falls back to a GitHub remote declared before a non-GitHub origin" {
+            val repository = repo(
+                "/project",
+                remote("mirror", "https://github.com/owner/mirror.git"),
+                remote("origin", "https://gitlab.com/owner/repo.git"),
+            )
+
+            GitHubRepoLocator.repoUrlOf(repository) shouldBe "https://github.com/owner/mirror"
+        }
+
         "uses the only remote when there is no origin" {
             val repository = repo("/project", remote("fork", "git@github.com:someone/repo.git"))
 

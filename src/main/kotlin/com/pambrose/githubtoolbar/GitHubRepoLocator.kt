@@ -50,15 +50,19 @@ object GitHubRepoLocator {
         return repoUrlOf(repository, allowedHosts)
     }
 
-    /** Resolves the GitHub page for a single repository, preferring the `origin` remote. */
+    /**
+     * Resolves the GitHub page for a single repository, preferring the `origin` remote.
+     *
+     * Expressed through [gitHubRemotes] so that the origin-first preference is written down once.
+     * The URL this returns is, by construction, the first entry the remotes submenu offers, and
+     * the two cannot drift into disagreeing about where a repository lives. It does mean every
+     * remote is parsed rather than stopping at `origin`; for the one to three remotes a real
+     * repository has, that is not worth a second copy of the rule.
+     */
     fun repoUrlOf(
         repository: GitRepository,
         allowedHosts: Set<String> = GitHubUrlParser.DEFAULT_HOSTS,
-    ): String? {
-        val remotes = repository.remotes
-        val origin = remotes.firstOrNull { it.name == ORIGIN }
-        return origin?.gitHubUrl(allowedHosts) ?: remotes.firstNotNullOfOrNull { it.gitHubUrl(allowedHosts) }
-    }
+    ): String? = gitHubRemotes(repository, allowedHosts).firstOrNull()?.url
 
     /** Picks the repository owning [contextFile], falling back to the first one. */
     fun selectRepository(
