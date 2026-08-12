@@ -8,6 +8,21 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Published
 
 ## [Unreleased]
 
+### Added
+
+- The plugin's commands now appear in the main menu, under **Git**, as an **Open on GitHub**
+  submenu. They had only ever been registered into the VCS Operations popup and the Project View
+  context menu, so anyone looking for them on the menu bar found nothing — the **GitHub** submenu
+  already sitting there belongs to the bundled GitHub plugin, which is also why this one takes a
+  different name rather than becoming a second entry reading *GitHub*.
+
+### Changed
+
+- In the main menu the commands hide when there is no GitHub page to open, matching what they
+  already did in a context menu, so an unusable **Open on GitHub ▸** is not left in the **Git**
+  menu of a project with no GitHub remote. They remain listed in Find Action and the keymap in
+  every case, so a shortcut can still be bound to a command that is momentarily unavailable.
+
 ## [1.1.1] - 2026-08-12
 
 ### Changed

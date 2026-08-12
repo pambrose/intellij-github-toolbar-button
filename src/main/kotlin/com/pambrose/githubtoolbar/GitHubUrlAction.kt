@@ -16,6 +16,7 @@
 
 package com.pambrose.githubtoolbar
 
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -51,7 +52,7 @@ abstract class GitHubUrlAction :
 
         if (project == null) {
             presentation.isEnabled = false
-            presentation.isVisible = !e.isFromContextMenu
+            presentation.isVisible = !hidesWhenUnavailable(e)
             presentation.description = "No project is open"
             return
         }
@@ -61,11 +62,7 @@ abstract class GitHubUrlAction :
         val url = urlFor(e, repositories)
 
         presentation.isEnabled = url != null
-        // On a toolbar the button always keeps its slot, so neighbouring icons never shift between
-        // projects. In a menu there is no slot worth holding, and a permanently dead entry is just
-        // clutter, so it is hidden instead of shown greyed out. (`isFromContextMenu` rather than
-        // `ActionPlaces.isPopupPlace`, which the Plugin Verifier flags as deprecated.)
-        presentation.isVisible = url != null || !e.isFromContextMenu
+        presentation.isVisible = url != null || !hidesWhenUnavailable(e)
         presentation.description = url?.let(::describe) ?: unavailableReason(e, repositories)
     }
 
@@ -95,6 +92,23 @@ abstract class GitHubUrlAction :
         e: AnActionEvent,
         repositories: List<GitRepository>,
     ): String = GitHubRepoLocator.unavailableReason(repositories)
+
+    /**
+     * Whether this action should disappear, rather than grey out, when it has no URL to open.
+     *
+     * On a toolbar the button always keeps its slot, so neighbouring icons never shift between
+     * projects. In a menu there is no slot worth holding and a permanently dead entry is only
+     * clutter, so it is hidden instead — in the main menu as well as in a context menu, since
+     * [GitHubDestinationsGroup] then takes the emptied submenu with it.
+     *
+     * Every other place — Find Action and the keymap above all — is deliberately left alone: an
+     * action that vanishes from search in a project without a GitHub remote is an action nobody can
+     * bind a shortcut to. `isFromContextMenu` rather than `ActionPlaces.isPopupPlace`, which the
+     * Plugin Verifier flags as deprecated, and a plain [ActionPlaces.MAIN_MENU] comparison rather
+     * than `isMainMenuOrActionSearch`, which would sweep Find Action up with it.
+     */
+    private fun hidesWhenUnavailable(e: AnActionEvent): Boolean =
+        e.isFromContextMenu || e.place == ActionPlaces.MAIN_MENU
 
     /** The file the action was invoked on, which decides the Git root in a multi-root project. */
     protected fun contextFile(e: AnActionEvent): VirtualFile? = e.getData(CommonDataKeys.VIRTUAL_FILE)

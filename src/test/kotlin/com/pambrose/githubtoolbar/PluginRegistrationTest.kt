@@ -20,8 +20,10 @@ import com.intellij.openapi.project.DumbAware
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.ints.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
+import org.w3c.dom.Document
 import org.w3c.dom.Element
 import javax.xml.parsers.DocumentBuilderFactory
 
@@ -34,22 +36,35 @@ import javax.xml.parsers.DocumentBuilderFactory
  * loaded with `initialize = false` and only their type hierarchy is inspected.
  */
 class PluginRegistrationTest : StringSpec() {
+    private val document: Document =
+        javaClass.getResourceAsStream("/META-INF/plugin.xml").use { stream ->
+            DocumentBuilderFactory
+                .newInstance()
+                .newDocumentBuilder()
+                .parse(checkNotNull(stream) { "META-INF/plugin.xml is not on the test classpath" })
+        }
+
     /** The `class` attribute of every `<action>` and `<group>` in `plugin.xml`. */
     private val registeredClasses: List<String> =
-        javaClass.getResourceAsStream("/META-INF/plugin.xml").use { stream ->
-            val document =
-                DocumentBuilderFactory
-                    .newInstance()
-                    .newDocumentBuilder()
-                    .parse(checkNotNull(stream) { "META-INF/plugin.xml is not on the test classpath" })
-
-            listOf("action", "group").flatMap { tag ->
-                val nodes = document.getElementsByTagName(tag)
-                (0 until nodes.length).mapNotNull { index ->
-                    (nodes.item(index) as Element).getAttribute("class").takeIf { it.isNotEmpty() }
-                }
-            }
+        listOf("action", "group").flatMap { tag ->
+            elements(tag).mapNotNull { it.getAttribute("class").takeIf(String::isNotEmpty) }
         }
+
+    private fun elements(tag: String): List<Element> =
+        document.getElementsByTagName(tag).let { nodes ->
+            (0 until nodes.length).map { nodes.item(it) as Element }
+        }
+
+    /** The `<group>` registered under [id], which the destination-menu tests below then read. */
+    private fun group(id: String): Element =
+        checkNotNull(elements("group").singleOrNull { it.getAttribute("id") == id }) {
+            "plugin.xml declares no single <group id=\"$id\">"
+        }
+
+    private fun childrenOf(
+        parent: Element,
+        tag: String,
+    ): List<Element> = elements(tag).filter { it.parentNode === parent }
 
     private fun loadWithoutInitializing(className: String): Class<*> =
         Class.forName(className, false, javaClass.classLoader)
@@ -82,5 +97,33 @@ class PluginRegistrationTest : StringSpec() {
                 }
             }
         }
+
+        // A group id that does not exist is not an error — the submenu simply never appears, which
+        // is how it went unnoticed that the main menu had been left out entirely. Each id here was
+        // read out of the IDE's own descriptors: `Git.MainMenu` from git4idea, the other two from
+        // the platform.
+        "the destinations submenu is registered into the main menu as well as both popups" {
+            val hosts =
+                childrenOf(group(DESTINATIONS_MENU), "add-to-group")
+                    .map { it.getAttribute("group-id") }
+
+            hosts shouldContainExactlyInAnyOrder
+                listOf("Git.MainMenu", "Vcs.Operations.Popup", "ProjectViewPopupMenu")
+        }
+
+        // The bundled GitHub plugin puts its own submenu, titled "GitHub", into Git.MainMenu. Drop
+        // this override and the Git menu carries two adjacent submenus under the same name, which
+        // no user can tell apart.
+        "the submenu is retitled in the main menu, where the bundled plugin already holds 'GitHub'" {
+            val overrides =
+                childrenOf(group(DESTINATIONS_MENU), "override-text")
+                    .filter { it.getAttribute("place") == "MainMenu" }
+
+            overrides.map { it.getAttribute("text") } shouldBe listOf("Open on GitHub")
+        }
+    }
+
+    private companion object {
+        const val DESTINATIONS_MENU = "com.pambrose.githubtoolbar.DestinationsMenu"
     }
 }
