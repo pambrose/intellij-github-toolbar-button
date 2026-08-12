@@ -25,11 +25,13 @@ button that takes you to the repository's home page.
 
 - **Always visible.** The button occupies its toolbar slot in every project, so its position
   never shifts around on you.
-- **More than the home page.** A **GitHub** submenu in the VCS Operations popup
-  (<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>V</kbd>) and the Project View right-click menu also opens
-  **Pull Requests**, **Issues**, **Actions**, and **Releases** for the same repository. Each is a
-  separate command, so any of them can take a keyboard shortcut. Right-clicking a file picks the
-  Git root that owns it, which matters in a project with nested roots.
+- **More than the home page.** A submenu under **Git** in the main menu (listed as **Open on
+  GitHub**, since the bundled plugin's own submenu already holds the name *GitHub*), in the VCS
+  Operations popup (<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>V</kbd>), and in the Project View
+  right-click menu also opens **Pull Requests**, **Issues**, **Actions**, and **Releases** for the
+  same repository. Each is a separate command, so any of them can take a keyboard shortcut.
+  Right-clicking a file picks the Git root that owns it, which matters in a project with nested
+  roots.
 - **Copy instead of open.** **Copy GitHub URL** puts the repository URL on the clipboard, for
   pasting into a review or a chat message.
 - **Forks can reach upstream.** When a repository has more than one GitHub remote, an **Open Other
@@ -43,8 +45,9 @@ button that takes you to the repository's home page.
 - **Disabled when it can't help.** In a project with no Git repository, no remote, or a
   non-GitHub remote, the button greys out and its tooltip explains why. It never fails silently
   and never opens a dialog you didn't ask for. In the menus these commands hide instead of
-  appearing permanently greyed out — as does the **GitHub** submenu itself, once everything inside
-  it has hidden.
+  appearing permanently greyed out — as does the submenu itself, once everything inside it has
+  hidden. They stay listed in Find Action and the keymap either way, so a shortcut can always be
+  bound to them.
 - **Works while the IDE is indexing.** Nothing here reads an index, so every command stays usable
   right after opening a project, switching branches, or syncing a build — which is exactly when you
   tend to reach for it.

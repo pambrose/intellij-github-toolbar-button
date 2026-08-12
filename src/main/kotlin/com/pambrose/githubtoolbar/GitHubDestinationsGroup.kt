@@ -20,13 +20,14 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.DumbAware
 
 /**
- * The **GitHub** submenu.
+ * The **GitHub** submenu — titled *Open on GitHub* in the main menu, where the bundled GitHub
+ * plugin's own submenu already holds the shorter name.
  *
- * Every child hides itself in a context menu when there is no GitHub page to open, so that a
- * permanently dead entry is not left behind. Without this class the submenu holding them would
- * undo that: the platform's default for an emptied popup group is to grey it out and keep it in
- * the menu (`isDisableGroupIfEmpty` is on by default, `isHideGroupIfEmpty` is not), leaving exactly
- * the dead entry the children took care to avoid.
+ * Every child hides itself in a menu when there is no GitHub page to open, so that a permanently
+ * dead entry is not left behind. Without this class the submenu holding them would undo that: the
+ * platform's default for an emptied popup group is to grey it out and keep it in the menu
+ * (`isDisableGroupIfEmpty` is on by default, `isHideGroupIfEmpty` is not), leaving exactly the dead
+ * entry the children took care to avoid.
  *
  * The flag is set on the template presentation from here rather than by overriding
  * `createTemplatePresentation()`, the way `DefaultCompactActionGroup` does it. That method is

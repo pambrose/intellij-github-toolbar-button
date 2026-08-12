@@ -246,11 +246,20 @@ dependency and stays directly unit-testable:
   `urlFor`, `describe` and `perform`, and override `unavailableReason` only where a more specific
   disabled-state tooltip exists (which only `OpenGitHubBranchAction` does).
   `update()` reads Git repository state, which is not allowed on the EDT — hence `BGT`. Visibility
-  is place-dependent: on a toolbar the button stays visible but disabled, so it never vacates its
-  slot and neighbouring icons never shift between projects; in a context menu (`e.isFromContextMenu`)
-  it hides instead, because a permanently dead menu entry is only clutter. Use `isFromContextMenu`,
-  not `ActionPlaces.isPopupPlace` — the Plugin Verifier flags the latter as deprecated, and
-  `make verify` reports it.
+  is place-dependent, and `hidesWhenUnavailable` is where that is decided: on a toolbar the button
+  stays visible but disabled, so it never vacates its slot and neighbouring icons never shift
+  between projects; in a menu — context menu (`e.isFromContextMenu`) or main menu
+  (`e.place == ActionPlaces.MAIN_MENU`) — it hides instead, because a permanently dead menu entry is
+  only clutter. Two near-misses to avoid. Use `isFromContextMenu`, not `ActionPlaces.isPopupPlace` —
+  the Plugin Verifier flags the latter as deprecated, and `make verify` reports it. And compare
+  against `MAIN_MENU` directly rather than reaching for `ActionPlaces.isMainMenuOrActionSearch`,
+  which also matches `GoToAction`: hiding there would drop these commands out of Find Action in
+  exactly the projects where someone might want to bind a shortcut to one.
+  The main-menu rule works because place propagates down a menu tree. `Utils.fillMenuInner` passes
+  its own `place` argument verbatim into both the nested `ActionMenu` and the leaf `ActionMenuItem`
+  (checked in the bytecode of `app-client.jar`, and `ActionMenu.isMainMenuPlace()` in the same build
+  is the identical `place == "MainMenu"` comparison), so a child of a submenu two levels inside the
+  menu bar still sees `MainMenu`.
   The `GitHubHostSettings` lookup lives here rather than in `GitHubRepoLocator`, which is what keeps
   that object free of any need for a running Application. Subclasses keep no-argument constructors,
   because the platform instantiates them reflectively.
@@ -268,11 +277,22 @@ the action as enabled, because it reads only git4idea state. The result is an ac
 available, works from the toolbar, and silently does nothing everywhere else. Marking only a group
 is worse than marking nothing: its submenu opens and lists entries that then refuse the click.
 
-`src/main/resources/META-INF/plugin.xml` registers the action into **both** toolbars plus two menus
-(`Vcs.Operations.Popup`, `ProjectViewPopupMenu`). The toolbar group IDs differ in casing and this is
-easy to get wrong: new UI is `MainToolbarLeft` (lowercase *b*), classic UI is `MainToolBar` (capital
-*B*). Every group ID here was confirmed to exist in an installed IDE — a typo'd group is not an
-error, the action simply never appears.
+`src/main/resources/META-INF/plugin.xml` registers the action into **both** toolbars, and the
+destinations submenu into three menus (`Git.MainMenu`, `Vcs.Operations.Popup`,
+`ProjectViewPopupMenu`). The toolbar group IDs differ in casing and this is easy to get wrong: new
+UI is `MainToolbarLeft` (lowercase *b*), classic UI is `MainToolBar` (capital *B*). Every group ID
+here was confirmed to exist in an installed IDE — a typo'd group is not an error, the action simply
+never appears, which is how the main menu went missing until 1.1.1 shipped without it.
+`PluginRegistrationTest` now pins that host list, since nothing else would notice its loss.
+
+`Git.MainMenu` is the menu-bar **Git** menu, contributed by Git4Idea — which this plugin already
+`<depends>` on, so it is always there. The bundled GitHub plugin puts its own submenu, titled
+*GitHub*, into the same menu (`GitHub.MainMenu`, anchored `before Git.Configure.Remotes`), so this
+one anchors alongside it and takes the name **Open on GitHub** through an
+`<override-text place="MainMenu"/>` — two adjacent submenus both reading *GitHub* are
+indistinguishable. Anchoring *into* `GitHub.MainMenu` instead was rejected deliberately: that group
+belongs to a plugin this one does not depend on, so referencing it would need an optional-dependency
+descriptor and would drop the commands entirely on an IDE without it.
 
 The action is titled **"Open Repository on GitHub"** deliberately. The bundled GitHub plugin's
 `Github.Open.In.Browser` group presents itself as "Open on GitHub" in Find Action (via

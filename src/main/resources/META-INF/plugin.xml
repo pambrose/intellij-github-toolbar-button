@@ -12,9 +12,10 @@
         its tooltip explains why.
         </p>
         <p>
-        A <b>GitHub</b> submenu in the VCS Operations popup and the Project View context menu
-        also opens the repository's pull requests, issues, Actions runs, and releases. Each is a
-        separate command, so any of them can be bound to a keyboard shortcut.
+        A submenu under <b>Git</b> in the main menu, in the VCS Operations popup, and in the
+        Project View context menu also opens the repository's pull requests, issues, Actions runs,
+        and releases. Each is a separate command, so any of them can be bound to a keyboard
+        shortcut.
         </p>
         <p>
         Self-hosted GitHub Enterprise hosts can be added under
@@ -119,6 +120,18 @@
             <reference ref="com.pambrose.githubtoolbar.Remotes"/>
             <reference ref="com.pambrose.githubtoolbar.CopyUrl"/>
 
+            <!-- The main menu already holds a submenu titled "GitHub" — the bundled GitHub plugin's
+                 GitHub.MainMenu group (Create Pull Request, Create Gist, and so on), which anchors
+                 itself before Git.Configure.Remotes. Two adjacent submenus both reading "GitHub"
+                 would be indistinguishable, so this one is retitled for that place only; it stays
+                 "GitHub" in the popups below, where nothing collides with it. -->
+            <override-text place="MainMenu" text="Open on GitHub"/>
+
+            <!-- Main menu, under Git (Git.MainMenu, contributed by Git4Idea, which this plugin
+                 already depends on). Anchored alongside the bundled plugin's submenu rather than
+                 into it: referencing GitHub.MainMenu would tie this group to a plugin that is not
+                 present in every IDE. -->
+            <add-to-group group-id="Git.MainMenu" relative-to-action="Git.Configure.Remotes" anchor="before"/>
             <!-- VCS Operations popup: project-scoped Git actions live here. -->
             <add-to-group group-id="Vcs.Operations.Popup" anchor="last"/>
             <!-- Project view: the right-clicked file selects the owning Git root, which is what
