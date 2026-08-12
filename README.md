@@ -3,6 +3,7 @@
 [![Build](https://github.com/pambrose/intellij-github-toolbar-button/actions/workflows/build.yml/badge.svg)](https://github.com/pambrose/intellij-github-toolbar-button/actions/workflows/build.yml)
 [![Coverage](https://img.shields.io/codecov/c/github/pambrose/intellij-github-toolbar-button/master?logo=codecov&logoColor=white&label=coverage&color=F01F7A)](https://codecov.io/gh/pambrose/intellij-github-toolbar-button)
 [![Release](https://img.shields.io/github/v/release/pambrose/intellij-github-toolbar-button?logo=github&color=2ea44f)](https://github.com/pambrose/intellij-github-toolbar-button/releases/latest)
+[![Marketplace](https://img.shields.io/jetbrains/plugin/v/33486?logo=jetbrains&logoColor=white&label=marketplace&color=FE2857)](https://plugins.jetbrains.com/plugin/33486-github-toolbar-button)
 [![IntelliJ IDEA](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fpambrose%2Fintellij-github-toolbar-button%2Fmaster%2Fgradle%2Flibs.versions.toml&query=%24.versions.intellijIdea&suffix=%2B&label=IntelliJ%20IDEA&color=000000&logo=intellijidea&logoColor=white)](https://www.jetbrains.com/idea/)
 [![Kotlin](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fpambrose%2Fintellij-github-toolbar-button%2Fmaster%2Fgradle%2Flibs.versions.toml&query=%24.versions.kotlin&label=Kotlin&color=7F52FF&logo=kotlin&logoColor=white)](https://kotlinlang.org)
 [![JDK](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fpambrose%2Fintellij-github-toolbar-button%2Fmaster%2Fgradle%2Flibs.versions.toml&query=%24.versions.jvm&label=JDK&color=437291&logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/21/)
@@ -33,10 +34,16 @@ button that takes you to the repository's home page.
   GitHub's create-PR page for the branch you are on, and **Open Current Branch on GitHub** opens its
   tree view. Both stay disabled until the branch tracks an upstream — an unpushed branch has no page
   to open — and the tooltip says whether you are on a detached HEAD or simply have not pushed yet.
+  They open the name the branch carries *on the remote*, which is not always its local name: after
+  `git checkout -b fix origin/main`, the page you want is `main`.
 - **Disabled when it can't help.** In a project with no Git repository, no remote, or a
   non-GitHub remote, the button greys out and its tooltip explains why. It never fails silently
   and never opens a dialog you didn't ask for. In the menus these commands hide instead of
-  appearing permanently greyed out — there is no slot worth holding there.
+  appearing permanently greyed out — as does the **GitHub** submenu itself, once everything inside
+  it has hidden.
+- **Works while the IDE is indexing.** Nothing here reads an index, so every command stays usable
+  right after opening a project, switching branches, or syncing a build — which is exactly when you
+  tend to reach for it.
 - **Opens the repository home page** — `https://github.com/owner/repo` — not a branch or file
   URL, so it works even when your current branch has never been pushed.
 
@@ -77,10 +84,21 @@ Enterprise repository URLs keep their own host — `https://github.mycompany.com
 
 ## Installation
 
-The plugin is not published to the JetBrains Marketplace, so install it from a locally built
-distribution.
+### From the JetBrains Marketplace
 
-**1. Clone and build**
+The plugin is listed as
+[GitHub Toolbar Button](https://plugins.jetbrains.com/plugin/33486-github-toolbar-button). In
+IntelliJ IDEA, open **Settings → Plugins → Marketplace**, search for **GitHub Toolbar Button**, and
+click **Install**.
+
+### From a release ZIP
+
+Every release also attaches an installable ZIP. Download it from the
+[releases page](https://github.com/pambrose/intellij-github-toolbar-button/releases/latest), then in
+IntelliJ IDEA open **Settings → Plugins**, click the **⚙️ gear icon**, choose **Install Plugin from
+Disk…**, select the ZIP, and restart when prompted.
+
+### From source
 
 ```bash
 git clone https://github.com/pambrose/intellij-github-toolbar-button.git
@@ -88,13 +106,7 @@ cd intellij-github-toolbar-button
 ./gradlew buildPlugin
 ```
 
-This writes a distributable ZIP to `build/distributions/`.
-
-**2. Install into your IDE**
-
-In IntelliJ IDEA, open **Settings → Plugins**, click the **⚙️ gear icon**, choose
-**Install Plugin from Disk…**, and select the ZIP from `build/distributions/`. Restart the IDE
-when prompted.
+This writes a distributable ZIP to `build/distributions/`, which installs the same way.
 
 ### Trying it without installing
 
@@ -130,7 +142,8 @@ make tests      # tests only
 make run        # launch a sandbox IDE with the plugin
 make dist       # produce the installable ZIP
 make verify     # plugin compatibility check
-make check      # wrapper check, then ktlint + tests + verifier
+make check      # wrapper check, then ktlint, tests, coverage, and the verifier
+make coverage   # coverage report -> build/reports/kover/html/
 make lint       # report ktlint violations
 make format     # fix what ktlint can fix automatically
 make versions   # report dependencies with newer stable releases
@@ -149,6 +162,7 @@ These call Gradle underneath, which you can also invoke directly:
 ./gradlew verifyPlugin       # check compatibility across supported IDE versions
 ./gradlew lintKotlin         # report ktlint violations
 ./gradlew formatKotlin       # fix what ktlint can fix automatically
+./gradlew koverHtmlReport    # coverage report -> build/reports/kover/html/
 ./gradlew dependencyUpdates  # report newer stable dependency versions
 ```
 
@@ -183,10 +197,20 @@ platform integration tests later would mean a separate source set that keeps it.
 
 ### Continuous integration
 
-Every pull request runs ktlint, the tests, and the IntelliJ Plugin Verifier, and lints the workflow
-files themselves with [actionlint](https://github.com/rhysd/actionlint) — the release workflow only
-runs on a tag, so nothing else would catch a mistake in it before a release. Formatting and workflow
-checks run first, so those failures come back in seconds rather than after a full IDE download.
+Every pull request runs ktlint, the tests, a coverage check, and the IntelliJ Plugin Verifier, and
+lints the workflow files themselves with [actionlint](https://github.com/rhysd/actionlint) — the
+release workflow only runs on a tag, so nothing else would catch a mistake in it before a release.
+Formatting and workflow checks run first, so those failures come back in seconds rather than after a
+full IDE download. Tagging a release runs the whole build again, tests included, rather than trusting
+that the tagged commit is the one `master` last verified.
+
+Coverage is measured by [Kover](https://github.com/Kotlin/kotlinx-kover) over the layer these unit
+tests can reach — the parser, the destinations, the locator and the settings — and `koverVerify`
+fails the build if it drops. The action and UI classes are excluded, because exercising them needs a
+running IDE; counting them would report a number that fell every time an action was added without
+anything being tested less well. Figures are published to
+[Codecov](https://codecov.io/gh/pambrose/intellij-github-toolbar-button), which annotates pull
+requests but cannot block them: the Gradle check is the gate.
 
 Built with the [IntelliJ Platform Gradle Plugin](https://github.com/JetBrains/intellij-platform-gradle-plugin).
 

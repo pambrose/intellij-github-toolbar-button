@@ -7,69 +7,60 @@
   CHANGELOG.md by the org.jetbrains.changelog plugin. The cumulative history lives there too.
 -->
 
-# v1.1.0
+# v1.1.1
 
-Everything in this release is reachable from a new **GitHub** submenu, in the VCS Operations popup
-(<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>V</kbd>) and the Project View right-click menu. The toolbar
-button is unchanged: one click, repository home page.
+A maintenance release. Three fixes, all of them cases where a command looked available and then did
+the wrong thing — or nothing at all. No new features, and nothing to change in how you use it.
 
-## Go somewhere other than the home page
+## Branch commands opened pages that did not exist
 
-**Pull Requests**, **Issues**, **Actions**, and **Releases** for the same repository. Each is a
-separate command, so any of them can take its own keyboard shortcut under **Settings → Keymap**.
+**Open Current Branch on GitHub** and **Open Pull Request for Current Branch** used your *local*
+branch name. That is usually the same name the branch has on the remote, but not always:
 
-## Go straight from a branch to its pull request
+```
+git checkout -b fix origin/main
+```
 
-**Open Pull Request for Current Branch** opens GitHub's create-PR page for the branch you are on —
-push, then jump straight to opening the PR. **Open Current Branch on GitHub** opens its tree view.
+leaves a local branch `fix` tracking `origin/main`. Both commands saw a tracked upstream, enabled
+themselves, and opened `…/tree/fix` — a 404, because `fix` had never been pushed.
+`git push -u origin HEAD:release-2026` and `git branch --set-upstream-to` produced the same
+mismatch.
 
-Both stay disabled until the branch tracks an upstream, because a branch that has never been pushed
-has no page on GitHub. The tooltip says which applies: whether you are on a detached HEAD, or simply
-have not pushed yet.
+They now open the name the branch carries on the remote, which is the one that exists. Where the
+two names already agree — the ordinary case — nothing changes.
 
-## Copy instead of open
+## Commands silently did nothing while the IDE was indexing
 
-**Copy GitHub URL** puts the repository URL on the clipboard rather than opening a browser, for
-pasting into a review or a chat message. It resolves the URL exactly as the button does.
+Nothing in this plugin reads an index, but nothing said so, and the platform will refuse an action
+that has not declared it. The result was worse than a greyed-out menu: the entries stayed **enabled**
+and simply did nothing when clicked, from the VCS Operations popup, the Project View context menu, a
+keyboard shortcut, or Find Action.
 
-## Forks can reach upstream
+The toolbar button was unaffected — it reaches the action by a different path that carries no such
+check — so the button worked while every menu entry refused, which is why this went unnoticed for so
+long. Indexing runs right after you open a project, switch branches, or sync a build, which is
+exactly when this plugin is most useful.
 
-When a repository has more than one GitHub remote, an **Open Other Remote** submenu lists them all.
-Previously `origin` always won, which left a fork's `upstream` unreachable. The button still follows
-`origin`; this adds a path to the others rather than making the choice ambiguous.
+Every command is now usable throughout.
 
-Repositories with a single remote — almost all of them — see nothing new.
+## An empty GitHub submenu was left behind
 
-## GitHub Enterprise
-
-Self-hosted installs are now supported. Add your host under **Settings → Tools → GitHub Toolbar
-Button**, one per line; pasting a full clone URL works too, since only the host is kept.
-
-Configured hosts are matched **exactly**, the same way `github.com` always has been. Adding
-`github.mycompany.com` recognizes that host and nothing else: not `evilgithub.mycompany.com`, and
-not `github.mycompany.com.evil.example`. The allowlist widens which hosts are accepted without
-weakening how any of them is checked, and `github.com` stays recognized no matter what you
-configure, so a mistake in that field can never take the default away.
-
-Enterprise repositories keep their own host in the opened URL —
-`https://github.mycompany.com/owner/repo`.
+In a project with no GitHub remote, the individual commands hid themselves from context menus, as
+intended — but the **GitHub ▸** submenu holding them stayed, permanently greyed out. It now hides
+along with its contents.
 
 ## Before you upgrade
 
-- **The command is now called "Open Repository on GitHub."** It was "Open on GitHub", which collides
-  with the bundled GitHub plugin's own differently-behaving action of that name — that one opens the
-  current *file* at the current revision. Its action ID is unchanged, so **existing keyboard
-  shortcuts and toolbar customizations keep working**; only the name you search for has changed.
-- **In menus, commands now hide** when the project has no GitHub repository, instead of appearing
-  permanently greyed out. On a toolbar the button still stays visible but disabled, so it never
-  vacates its slot and neighbouring icons never shift between projects.
+Nothing to do. No settings, action IDs, or keyboard shortcuts have changed, so existing keymap
+bindings and toolbar customizations keep working.
 
 ## Installation
 
-Download `intellij-github-toolbar-button-1.1.0.zip` from the release assets, then in IntelliJ IDEA
-open **Settings → Plugins → ⚙ → Install Plugin from Disk…**, select the ZIP, and restart when
-prompted.
+Install from the [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/33486-github-toolbar-button)
+under **Settings → Plugins → Marketplace**, or download
+`intellij-github-toolbar-button-1.1.1.zip` from the assets below and use **Settings → Plugins → ⚙ →
+Install Plugin from Disk…**, restarting when prompted.
 
 Requires IntelliJ IDEA 2025.2 or later with the bundled **Git** plugin enabled.
 
-**Full Changelog**: https://github.com/pambrose/intellij-github-toolbar-button/compare/1.0.0...1.1.0
+**Full Changelog**: https://github.com/pambrose/intellij-github-toolbar-button/compare/1.1.0...1.1.1
