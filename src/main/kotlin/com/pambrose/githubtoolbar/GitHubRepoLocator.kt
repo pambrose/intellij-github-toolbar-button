@@ -44,21 +44,34 @@ object GitHubRepoLocator {
         project: Project,
         contextFile: VirtualFile?,
         allowedHosts: Set<String> = GitHubUrlParser.DEFAULT_HOSTS,
-    ): String? {
-        val repositories = GitRepositoryManager.getInstance(project).repositories
-        val repository = selectRepository(repositories, contextFile) ?: return null
-        return repoUrlOf(repository, allowedHosts)
-    }
+    ): String? = locate(GitRepositoryManager.getInstance(project).repositories, contextFile, allowedHosts)
 
-    /** Resolves the GitHub page for a single repository, preferring the `origin` remote. */
+    /**
+     * As [locate], for a caller that already holds the project's repositories — which the action
+     * layer does, having needed them for the disabled-state tooltip anyway.
+     *
+     * Unlike the [Project] overload this one touches no platform service, so it is directly
+     * unit-testable against mocked git4idea types.
+     */
+    fun locate(
+        repositories: List<GitRepository>,
+        contextFile: VirtualFile?,
+        allowedHosts: Set<String> = GitHubUrlParser.DEFAULT_HOSTS,
+    ): String? = selectRepository(repositories, contextFile)?.let { repoUrlOf(it, allowedHosts) }
+
+    /**
+     * Resolves the GitHub page for a single repository, preferring the `origin` remote.
+     *
+     * Expressed through [gitHubRemotes] so that the origin-first preference is written down once.
+     * The URL this returns is, by construction, the first entry the remotes submenu offers, and
+     * the two cannot drift into disagreeing about where a repository lives. It does mean every
+     * remote is parsed rather than stopping at `origin`; for the one to three remotes a real
+     * repository has, that is not worth a second copy of the rule.
+     */
     fun repoUrlOf(
         repository: GitRepository,
         allowedHosts: Set<String> = GitHubUrlParser.DEFAULT_HOSTS,
-    ): String? {
-        val remotes = repository.remotes
-        val origin = remotes.firstOrNull { it.name == ORIGIN }
-        return origin?.gitHubUrl(allowedHosts) ?: remotes.firstNotNullOfOrNull { it.gitHubUrl(allowedHosts) }
-    }
+    ): String? = gitHubRemotes(repository, allowedHosts).firstOrNull()?.url
 
     /** Picks the repository owning [contextFile], falling back to the first one. */
     fun selectRepository(

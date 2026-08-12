@@ -89,6 +89,22 @@ object GitHubUrlParser {
         return host.takeIf { it.isNotEmpty() && HOSTNAME.matches(it) }
     }
 
+    /**
+     * Reduces a block of user-entered lines to exactly what the settings store: bare hostnames,
+     * minus anything unusable, minus the defaults (which are unioned in regardless), deduplicated.
+     *
+     * Single-sourced deliberately, and not merely to save a few lines. The settings page decides
+     * whether **Apply** is enabled by comparing what was typed against what was stored, so both
+     * sides have to derive the list *identically*. Were one copy to drift stricter, `isModified`
+     * would stay true forever after a successful apply; were it to drift looser, a real edit would
+     * never enable Apply and the typed host would be discarded in silence.
+     */
+    fun normalizeHosts(raw: List<String>): List<String> =
+        raw
+            .mapNotNull(::normalizeHost)
+            .filterNot { it in DEFAULT_HOSTS }
+            .distinct()
+
     private fun splitHostAndPath(remote: String): Pair<String, String>? =
         when {
             SCHEME.containsMatchIn(remote) -> {

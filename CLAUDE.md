@@ -152,13 +152,18 @@ dependency and stays directly unit-testable:
   `allowedHosts` (defaulting to `DEFAULT_HOSTS`: `github.com` / `www.github.com`), which is what
   rejects lookalikes like `evilgithub.com` and `github.com.evil.example` — don't loosen this to a
   `contains`/`endsWith` check. GitHub Enterprise is supported by *widening that set*, never by
-  weakening the comparison. `normalizeHost` reduces user-entered text to a bare hostname.
+  weakening the comparison. `normalizeHost` reduces user-entered text to a bare hostname, and
+  `normalizeHosts` reduces a block of typed lines to exactly what the settings store — the settings
+  page and the store must derive that list identically, so it is written once here.
 - **`GitHubHostSettings` / `GitHubHostConfigurable`** — an application-level
   `SimplePersistentStateComponent` holding the extra enterprise hosts, plus its Settings → Tools
   page. `allowedHosts` always unions in `DEFAULT_HOSTS`, so a bad entry can only fail to add a host,
   never remove github.com. Mutations go through `State.replaceHosts` because marking state dirty
   needs `BaseState.incrementModificationCount`, which is `protected`; the public
-  `intIncrementModificationCount` is `@ApiStatus.Internal` and **fails `make verify`**.
+  `intIncrementModificationCount` is `@ApiStatus.Internal` and **fails `make verify`**. Both the
+  store and the page reduce typed input through `GitHubUrlParser.normalizeHosts`, and that has to
+  stay a single function: `isModified` compares what was typed against what was stored, so two
+  derivations that disagree leave Apply either permanently enabled or permanently dead.
 - **`GitHubRepoLocator`** — wraps git4idea. Selects the Git root owning the current file (innermost
   wins when roots nest, via longest matching path), falling back to the project's first root; then
   prefers the `origin` remote, falling back to the first remote that parses as GitHub. Also produces
@@ -197,17 +202,24 @@ dependency and stays directly unit-testable:
   is not a substitute either; it only hides *disabled* children.
 - **`CopyGitHubUrlAction`** — same resolution as `OpenOnGitHubAction`, but writes to the clipboard
   via `CopyPasteManager.copyTextToClipboard` instead of opening a browser.
-- **`OpenGitHubDestinationAction`** — holds all the action behaviour, parameterized by a
-  `GitHubDestination`. Its subclasses (`OpenOnGitHubAction` and the four in
-  `GitHubDestinationActions.kt`) exist *only* to bind a destination: the platform instantiates
-  actions reflectively and can call only a no-argument constructor, so the destination cannot be a
-  registration attribute.
-  `update()` reads Git repository state and that is not allowed on the EDT. Visibility is
-  place-dependent: on a toolbar the button stays visible but disabled, so it never vacates its slot
-  and neighbouring icons never shift between projects; in a context menu (`e.isFromContextMenu`) it
-  hides instead, because a permanently dead menu entry is only clutter. Use `isFromContextMenu`, not
-  `ActionPlaces.isPopupPlace` — the Plugin Verifier flags the latter as deprecated, and
+- **`GitHubUrlAction`** — the base every URL-producing action extends, and **the one place the
+  enabled/visible/tooltip policy is written**. It was previously copied into each action and
+  explained in only one of them. `update()` and `actionPerformed()` are `final`; subclasses supply
+  `urlFor`, `describe` and `perform`, and override `unavailableReason` only where a more specific
+  disabled-state tooltip exists (which only `OpenGitHubBranchAction` does).
+  `update()` reads Git repository state, which is not allowed on the EDT — hence `BGT`. Visibility
+  is place-dependent: on a toolbar the button stays visible but disabled, so it never vacates its
+  slot and neighbouring icons never shift between projects; in a context menu (`e.isFromContextMenu`)
+  it hides instead, because a permanently dead menu entry is only clutter. Use `isFromContextMenu`,
+  not `ActionPlaces.isPopupPlace` — the Plugin Verifier flags the latter as deprecated, and
   `make verify` reports it.
+  The `GitHubHostSettings` lookup lives here rather than in `GitHubRepoLocator`, which is what keeps
+  that object free of any need for a running Application. Subclasses keep no-argument constructors,
+  because the platform instantiates them reflectively.
+- **`OpenGitHubDestinationAction`** — binds a `GitHubDestination` to `GitHubUrlAction`, and nothing
+  more. Its subclasses (`OpenOnGitHubAction` and the four in `GitHubDestinationActions.kt`) exist
+  *only* to bind a destination: the platform can call only a no-argument constructor, so the
+  destination cannot be a registration attribute.
 
 **Everything registered in `plugin.xml` implements `DumbAware`**, and `PluginRegistrationTest`
 enforces it by walking the XML. Nothing here reads an index, so nothing should be refused while one

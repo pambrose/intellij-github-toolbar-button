@@ -16,59 +16,24 @@
 
 package com.pambrose.githubtoolbar
 
-import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.ide.CopyPasteManager
-import com.intellij.openapi.project.DumbAware
-import git4idea.repo.GitRepositoryManager
+import git4idea.repo.GitRepository
 
 /**
  * Copies the repository's GitHub URL instead of opening it, for pasting into a review, a chat
  * message, or a commit body.
  *
- * Resolution is identical to [OpenOnGitHubAction], so the copied URL is always the page the button
- * would have opened.
- *
- * [DumbAware] for the same reason as [OpenGitHubDestinationAction]: nothing here reads an index.
+ * Resolution is identical to [OpenOnGitHubAction] — both go through [GitHubUrlAction] — so the
+ * copied URL is always the page the button would have opened.
  */
-class CopyGitHubUrlAction :
-    AnAction(),
-    DumbAware {
-    // Reads Git repository state, which is not allowed on the EDT.
-    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+class CopyGitHubUrlAction : GitHubUrlAction() {
+    override fun urlFor(
+        e: AnActionEvent,
+        repositories: List<GitRepository>,
+    ): String? = GitHubRepoLocator.locate(repositories, contextFile(e), allowedHosts())
 
-    override fun update(e: AnActionEvent) {
-        val presentation = e.presentation
-        val project = e.project
+    override fun describe(url: String): String = "Copy $url to the clipboard"
 
-        if (project == null) {
-            presentation.isEnabled = false
-            presentation.isVisible = !e.isFromContextMenu
-            presentation.description = "No project is open"
-            return
-        }
-
-        val url = repositoryUrl(e)
-        presentation.isEnabled = url != null
-        presentation.isVisible = url != null || !e.isFromContextMenu
-        presentation.description =
-            url?.let { "Copy $it to the clipboard" }
-                ?: GitHubRepoLocator.unavailableReason(GitRepositoryManager.getInstance(project).repositories)
-    }
-
-    override fun actionPerformed(e: AnActionEvent) {
-        val url = repositoryUrl(e) ?: return
-        CopyPasteManager.copyTextToClipboard(url)
-    }
-
-    private fun repositoryUrl(e: AnActionEvent): String? {
-        val project = e.project ?: return null
-        return GitHubRepoLocator.locate(
-            project,
-            e.getData(CommonDataKeys.VIRTUAL_FILE),
-            GitHubHostSettings.getInstance().allowedHosts,
-        )
-    }
+    override fun perform(url: String) = CopyPasteManager.copyTextToClipboard(url)
 }
