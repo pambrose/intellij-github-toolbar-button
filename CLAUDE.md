@@ -123,7 +123,10 @@ replacement at 40×40, not enlarged: that is the size the Marketplace lists, and
 at 80&nbsp;px routinely turns to mush at 40.
 
 The first upload of a plugin has to be made by hand through the Marketplace UI; the API only accepts
-updates to a listing that already exists.
+updates to a listing that already exists. **That step is done** — the listing is plugin `33486`,
+`com.pambrose.github-toolbar-button`, currently showing 1.1.0 — so `publishPlugin` can now update it
+and every later release goes out through `release.yml` unattended. The README links and the
+Marketplace version badge both key off that id.
 
 ## Formatting
 

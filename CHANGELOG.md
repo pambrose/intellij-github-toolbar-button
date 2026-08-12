@@ -8,6 +8,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Published
 
 ## [Unreleased]
 
+### Changed
+
+- The plugin icon now carries its accent colour on the arrow rather than the frame, and the frame is
+  drawn open where the arrow leaves it. Visible wherever the plugin is listed — the Marketplace, and
+  **Settings | Plugins** inside the IDE.
+
 ### Fixed
 
 - **Open Current Branch on GitHub** and **Open Pull Request for Current Branch** now open the name
