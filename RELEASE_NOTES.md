@@ -56,10 +56,16 @@ bindings and toolbar customizations keep working.
 
 ## Installation
 
-Install from the [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/33486-github-toolbar-button)
-under **Settings → Plugins → Marketplace**, or download
-`intellij-github-toolbar-button-1.1.1.zip` from the assets below and use **Settings → Plugins → ⚙ →
-Install Plugin from Disk…**, restarting when prompted.
+The plugin is on the
+[JetBrains Marketplace](https://plugins.jetbrains.com/plugin/33486-github-toolbar-button). Open
+**Settings → Plugins → Marketplace**, search for **GitHub Toolbar Button**, and click **Install** —
+or **Update**, if you already have it, since Marketplace installs pick up new versions through the
+IDE's own plugin updates.
+
+If you installed a ZIP by hand previously, this release is a good moment to switch: uninstall that
+copy and install from the Marketplace, and updates stop being something you have to do yourself.
+The ZIP is still attached below for anyone who prefers it — **Settings → Plugins → ⚙ → Install
+Plugin from Disk…**, then restart when prompted.
 
 Requires IntelliJ IDEA 2025.2 or later with the bundled **Git** plugin enabled.
 
