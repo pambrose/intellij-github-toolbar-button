@@ -53,10 +53,19 @@ jobs:
         run: ./gradlew buildPlugin
 
       # RELEASE_NOTES.md keeps every release's prose, newest first, under one `# vMAJOR.MINOR.PATCH`
-      # heading each. Only the section belonging to this tag is published: printing starts at the
-      # matching heading and stops at the next `# v`, so the file's opening HTML comment and every
-      # older release fall outside it without needing to be stripped. The heading itself is kept,
-      # because that is how the bodies of 1.1.0 and 1.1.1 were published.
+      # heading each. Only the section belonging to this tag is published, so the file's opening HTML
+      # comment and every older release fall outside the body without needing to be stripped.
+      #
+      # Two things are dropped, both because GitHub supplies them itself and 1.2.0 shipped with each
+      # rendered twice on the release page:
+      #
+      #   - The `# v<tag>` heading. It is how the section is found, so it has to stay in the file,
+      #     but the release is already titled `v<tag>` — publishing it repeats that as a second
+      #     heading directly beneath the first.
+      #   - A trailing `**Full Changelog**:` line. `generate_release_notes: true` below appends its
+      #     own, so a hand-written one is always a duplicate. Dropping it here rather than trusting
+      #     the file to omit it: every older section carries one (they are the published record and
+      #     are not edited), which makes them a template that reintroduces the problem.
       #
       # An empty result means the section was never written, and that is fatal. GitHub would
       # otherwise publish a release whose entire body is its own generated commit list — recoverable
@@ -67,10 +76,22 @@ jobs:
       - name: Prepare the release body
         run: |
           body="$(awk -v heading="# v$GITHUB_REF_NAME" '
-            /^# v/ { inSection = ($0 == heading) }
-            inSection { print }' RELEASE_NOTES.md)"
+            $0 == heading { inSection = 1; next }
+            inSection && /^# v/ { exit }
+            inSection { print }' RELEASE_NOTES.md |
+            awk '
+              { line[NR] = $0 }
+              END {
+                first = 1
+                last = NR
+                while (last >= first && line[last] ~ /^[[:space:]]*$/) last--
+                if (line[last] ~ /^\*\*Full Changelog\*\*:/) last--
+                while (last >= first && line[last] ~ /^[[:space:]]*$/) last--
+                while (first <= last && line[first] ~ /^[[:space:]]*$/) first++
+                for (i = first; i <= last; i++) print line[i]
+              }')"
           if [ -z "$body" ]; then
-            echo "::error::RELEASE_NOTES.md has no '# v$GITHUB_REF_NAME' section"
+            echo "::error::RELEASE_NOTES.md has no usable '# v$GITHUB_REF_NAME' section"
             exit 1
           fi
           printf '%s\n' "$body" > release-body.md

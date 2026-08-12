@@ -171,10 +171,23 @@ the ones below it are the published record of releases that have already gone ou
 publishes the single section whose heading matches the tag (printing starts at `# v<tag>` and stops
 at the next `# v`), so the leading HTML comment and every older section fall outside the body without
 needing to be stripped, and **an absent section fails the release** rather than publishing a body
-that is nothing but GitHub's generated commit list. Keep the heading in the section: that is how
-1.1.0 and 1.1.1 were published, and the extraction was checked to reproduce 1.1.1's body byte for
-byte. It held one release at a time until 1.2.0; the sections for 1.1.1 and 1.1.0 were recovered
-from the file at their tags, and 1.0.0's — which predates the file — from the published release.
+that is nothing but GitHub's generated commit list. It held one release at a time until 1.2.0; the
+sections for 1.1.1 and 1.1.0 were recovered from the file at their tags, and 1.0.0's — which
+predates the file — from the published release.
+
+Two things a section carries are deliberately *not* published, because GitHub supplies them and
+1.2.0 shipped with each rendered twice on its release page:
+
+- The `# v<tag>` heading, which has to stay in the file because it is how the section is matched,
+  but which repeats the release's own `v<tag>` title as a second heading directly beneath it.
+- A trailing `**Full Changelog**:` line, since `generate_release_notes: true` appends one anyway.
+
+Both are dropped in the workflow rather than left to the file. Every section written before 1.2.0
+ends with that line — they are the published record and are not edited — which makes them a template
+that would otherwise reintroduce the duplicate. Note the consequence: re-running the extraction over
+an old section no longer reproduces what that release actually published, so don't use that as a
+check. What is checked is that each of the four sections yields prose with zero `# v` headings and
+zero `Full Changelog` lines, and that an unknown tag yields nothing and fails.
 
 Two settings are load-bearing:
 
