@@ -163,8 +163,18 @@ that `make format` will rewrite a single-line signature for you.
 `CHANGELOG.md` is the single source for the plugin's `changeNotes`: the `org.jetbrains.changelog`
 plugin extracts the section matching `version` from `gradle.properties` (falling back to
 `[Unreleased]`) and converts it to the HTML the plugin manager renders. Don't hand-write
-`changeNotes` — it will be overwritten. `RELEASE_NOTES.md` is separate and hand-written: the prose
-for one release, replaced each time.
+`changeNotes` — it will be overwritten.
+
+`RELEASE_NOTES.md` is separate and hand-written: the prose bodies of the GitHub releases, newest
+first, one `# vMAJOR.MINOR.PATCH` section each. It is *cumulative* — a new section goes on top and
+the ones below it are the published record of releases that have already gone out. `release.yml`
+publishes the single section whose heading matches the tag (printing starts at `# v<tag>` and stops
+at the next `# v`), so the leading HTML comment and every older section fall outside the body without
+needing to be stripped, and **an absent section fails the release** rather than publishing a body
+that is nothing but GitHub's generated commit list. Keep the heading in the section: that is how
+1.1.0 and 1.1.1 were published, and the extraction was checked to reproduce 1.1.1's body byte for
+byte. It held one release at a time until 1.2.0; the sections for 1.1.1 and 1.1.0 were recovered
+from the file at their tags, and 1.0.0's — which predates the file — from the published release.
 
 Two settings are load-bearing:
 

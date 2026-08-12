@@ -52,22 +52,29 @@ jobs:
       - name: Build plugin
         run: ./gradlew buildPlugin
 
-      # RELEASE_NOTES.md opens with an HTML comment explaining what the file is and is not. That note
-      # earns its keep in the repository, but it has no business in the published body: GitHub hides
-      # HTML comments when rendering, so it is invisible on the release page while still sitting in
-      # the API response and in anything that consumes releases as text. Strip it into a copy rather
-      # than deleting it from the file.
+      # RELEASE_NOTES.md keeps every release's prose, newest first, under one `# vMAJOR.MINOR.PATCH`
+      # heading each. Only the section belonging to this tag is published: printing starts at the
+      # matching heading and stops at the next `# v`, so the file's opening HTML comment and every
+      # older release fall outside it without needing to be stripped. The heading itself is kept,
+      # because that is how the bodies of 1.1.0 and 1.1.1 were published.
       #
-      # The leading `<!--` has to be on the first line for this to fire, which is the only shape the
-      # file has ever had. A single-line comment is handled too, and a file with no comment passes
-      # through untouched.
+      # An empty result means the section was never written, and that is fatal. GitHub would
+      # otherwise publish a release whose entire body is its own generated commit list — recoverable
+      # only by editing the release afterwards, which the tag cannot redo.
+      #
+      # GITHUB_REF_NAME comes through the environment rather than `${{ }}` interpolation, for the
+      # same reason as the tag check above.
       - name: Prepare the release body
         run: |
-          awk 'BEGIN { inComment = 0 }
-               NR == 1 && /^[[:space:]]*<!--/ { inComment = 1 }
-               inComment == 1 { if (/-->/) inComment = 0; next }
-               { print }' RELEASE_NOTES.md | sed '/./,$!d' > release-body.md
-          echo "::notice::Release body starts: $(head -n 1 release-body.md)"
+          body="$(awk -v heading="# v$GITHUB_REF_NAME" '
+            /^# v/ { inSection = ($0 == heading) }
+            inSection { print }' RELEASE_NOTES.md)"
+          if [ -z "$body" ]; then
+            echo "::error::RELEASE_NOTES.md has no '# v$GITHUB_REF_NAME' section"
+            exit 1
+          fi
+          printf '%s\n' "$body" > release-body.md
+          echo "::notice::Release body: $(wc -l < release-body.md) lines, starting '$(head -n 1 release-body.md)'"
 
       # Before publishPlugin, which also produces a *-signed.zip: attaching the release here keeps
       # exactly one ZIP on it instead of two near-identically named ones.

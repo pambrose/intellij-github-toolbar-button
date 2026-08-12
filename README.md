@@ -139,12 +139,35 @@ Open any project backed by a GitHub repository and click the button in the main 
 repository page opens in your default browser.
 
 If the button is greyed out, hover it: the tooltip states whether the project has no Git
-repository, no remote, or a remote that isn't on `github.com`.
+repository, no remote, or a remote that isn't on a recognized GitHub host.
 
-The command is named **Open Repository on GitHub** — distinct from the bundled GitHub plugin's
-"Open on GitHub", which opens the current *file* at the current revision. Bind it to a keyboard
-shortcut under **Settings → Keymap** by searching for that name, and move the toolbar button itself
-via **Settings → Appearance & Behavior → Menus and Toolbars → Main Toolbar**.
+### Where the other commands live
+
+Everything past the home page — pull requests, issues, Actions runs, releases, the branch commands
+and **Copy GitHub URL** — is grouped into one submenu, offered in three places:
+
+| Where | Listed as |
+| --- | --- |
+| Main menu, under **Git** | **Open on GitHub** |
+| VCS Operations popup (<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>V</kbd>) | **GitHub** |
+| Project View right-click menu | **GitHub** |
+
+The main menu is the odd one out because the **Git** menu already holds a **GitHub** submenu —
+**Create Pull Request**, **Create Gist**, and so on — belonging to the GitHub integration bundled
+with your IDE, which does different things. Two entries under one name would be impossible to tell
+apart, so this plugin's takes the longer one there.
+
+In a project with no GitHub remote the submenu hides rather than sitting greyed out, in all three
+places. Its commands stay listed in **Find Action** and **Settings → Keymap** regardless, so a
+shortcut can be bound to one whether or not the current project has somewhere for it to go.
+
+### Naming and customization
+
+The command behind the button is named **Open Repository on GitHub** — distinct from the bundled
+GitHub plugin's "Open on GitHub", which opens the current *file* at the current revision. Bind it to
+a keyboard shortcut under **Settings → Keymap** by searching for that name. Under **Settings →
+Appearance & Behavior → Menus and Toolbars** you can move the toolbar button itself (**Main
+Toolbar**) and rearrange or remove the submenu where it appears in the **Git** menu.
 
 ## Development
 
