@@ -8,6 +8,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Published
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-08-12
+
 ### Added
 
 - The plugin's commands now appear in the main menu, under **Git**, as an **Open on GitHub**
@@ -109,7 +111,8 @@ First release.
 - CI covering build, tests, and the IntelliJ Plugin Verifier, plus tag-driven release automation that
   refuses to publish when the tag disagrees with the version in `gradle.properties`.
 
-[Unreleased]: https://github.com/pambrose/intellij-github-toolbar-button/compare/1.1.1...HEAD
+[Unreleased]: https://github.com/pambrose/intellij-github-toolbar-button/compare/1.2.0...HEAD
+[1.2.0]: https://github.com/pambrose/intellij-github-toolbar-button/compare/1.1.1...1.2.0
 [1.1.1]: https://github.com/pambrose/intellij-github-toolbar-button/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/pambrose/intellij-github-toolbar-button/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/pambrose/intellij-github-toolbar-button/commits/1.0.0
