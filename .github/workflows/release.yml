@@ -52,6 +52,23 @@ jobs:
       - name: Build plugin
         run: ./gradlew buildPlugin
 
+      # RELEASE_NOTES.md opens with an HTML comment explaining what the file is and is not. That note
+      # earns its keep in the repository, but it has no business in the published body: GitHub hides
+      # HTML comments when rendering, so it is invisible on the release page while still sitting in
+      # the API response and in anything that consumes releases as text. Strip it into a copy rather
+      # than deleting it from the file.
+      #
+      # The leading `<!--` has to be on the first line for this to fire, which is the only shape the
+      # file has ever had. A single-line comment is handled too, and a file with no comment passes
+      # through untouched.
+      - name: Prepare the release body
+        run: |
+          awk 'BEGIN { inComment = 0 }
+               NR == 1 && /^[[:space:]]*<!--/ { inComment = 1 }
+               inComment == 1 { if (/-->/) inComment = 0; next }
+               { print }' RELEASE_NOTES.md | sed '/./,$!d' > release-body.md
+          echo "::notice::Release body starts: $(head -n 1 release-body.md)"
+
       # Before publishPlugin, which also produces a *-signed.zip: attaching the release here keeps
       # exactly one ZIP on it instead of two near-identically named ones.
       - name: Publish release
@@ -60,7 +77,7 @@ jobs:
           name: v${{ github.ref_name }}
           files: build/distributions/*.zip
           # The hand-written notes lead; GitHub's generated commit list is appended below them.
-          body_path: RELEASE_NOTES.md
+          body_path: release-body.md
           generate_release_notes: true
 
       # The `secrets` context is not available in a step `if`, so presence is turned into an output
