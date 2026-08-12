@@ -70,11 +70,9 @@ class GitHubHostConfigurable : Configurable {
 
     private fun storedHosts(): List<String> = GitHubHostSettings.getInstance().state.hosts.toList()
 
-    private fun enteredHosts(): List<String> =
-        hostsField.text.lines()
-            .mapNotNull(GitHubUrlParser::normalizeHost)
-            .filterNot { it in GitHubUrlParser.DEFAULT_HOSTS }
-            .distinct()
+    // The same reduction GitHubHostSettings.setHosts applies, and it has to stay that way: this is
+    // what `isModified` compares against what was stored.
+    private fun enteredHosts(): List<String> = GitHubUrlParser.normalizeHosts(hostsField.text.lines())
 
     /** Shows what will actually be stored, so a typo is visible before it is saved and forgotten. */
     private fun updatePreview() {

@@ -60,13 +60,14 @@ class GitHubHostSettings : SimplePersistentStateComponent<GitHubHostSettings.Sta
     val allowedHosts: Set<String>
         get() = GitHubUrlParser.DEFAULT_HOSTS + state.hosts
 
-    /** Replaces the configured hosts, dropping anything that could not be normalized. */
+    /**
+     * Replaces the configured hosts, dropping anything that could not be normalized.
+     *
+     * The reduction itself lives in [GitHubUrlParser.normalizeHosts], because the settings page
+     * has to derive the same list to decide whether **Apply** is enabled.
+     */
     fun setHosts(raw: List<String>) {
-        state.replaceHosts(
-            raw.mapNotNull(GitHubUrlParser::normalizeHost)
-                .filterNot { it in GitHubUrlParser.DEFAULT_HOSTS }
-                .distinct(),
-        )
+        state.replaceHosts(GitHubUrlParser.normalizeHosts(raw))
     }
 
     companion object {

@@ -236,5 +236,22 @@ class GitHubUrlParserTest : StringSpec() {
             GitHubUrlParser.toRepoUrl("git@github.mycompany.com:owner/repo.git", setOfNotNull(host)) shouldBe
                 "https://github.mycompany.com/owner/repo"
         }
+
+        // Both the settings store and the Settings page's Apply button derive their list through
+        // this one function. Two separate derivations would have to agree exactly or Apply would
+        // either never settle or never enable, so the reduction is pinned here in one place.
+        "reduces a block of typed lines to exactly what the settings store" {
+            GitHubUrlParser.normalizeHosts(
+                listOf(
+                    "  HTTPS://GitHub.MyCompany.COM/owner/repo.git  ",
+                    "github.com",
+                    "www.github.com",
+                    "!!!",
+                    "",
+                    "GITHUB.MYCOMPANY.COM",
+                    "second.example.com",
+                ),
+            ) shouldBe listOf("github.mycompany.com", "second.example.com")
+        }
     }
 }
