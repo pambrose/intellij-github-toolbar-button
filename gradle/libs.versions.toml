@@ -5,7 +5,7 @@ jvm = "21"
 intellijPlatformPlugin = "2.18.1"
 # The IntelliJ IDEA Community build compiled and tested against.
 intellijIdea = "2025.2"
-kotest = "6.2.3"
+kotest = "6.2.4"
 mockk = "1.14.11"
 benManesVersions = "0.61.0"
 changelog = "2.5.0"
