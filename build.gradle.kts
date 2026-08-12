@@ -25,8 +25,10 @@ dependencies {
         bundledPlugin("Git4Idea")
     }
 
-    // Version comes from the Kotlin plugin, so it stays out of the catalog.
-    testImplementation(kotlin("test"))
+    // No kotlin("test") here on purpose. Nothing imports from it, and it resolves to
+    // kotlin-test-junit5, which drags junit-jupiter-engine onto the test runtime classpath — a
+    // second JUnit Platform engine beside Kotest's, on a classpath `tasks.test` below already has
+    // to hand-curate. It also reintroduces a kotlin-stdlib that gradle.properties works to keep off.
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.mockk)
@@ -119,6 +121,22 @@ tasks.test {
     classpath = classpath.filter { it.name != "testFramework.jar" }
 
     maxHeapSize = "1g"
+}
+
+// The IntelliJ Platform plugin registers both of these and wires neither into anything, so without
+// this they never run at all — neither appears in `./gradlew build --dry-run`. Both are effectively
+// free: prepareSandbox, their only real prerequisite, is already in the `build` graph.
+//
+// What this buys is visibility, not a gate: both *report* and neither fails the build. Measured,
+// not assumed — flipping kotlin.stdlib.default.dependency back to true makes
+// verifyPluginProjectConfiguration report the stdlib/platform conflict that setting exists to
+// prevent, but the build still exits 0. And verifyPluginStructure does **not** notice a missing
+// META-INF/pluginIcon.svg, so do not read it as cover for the icons — Marketplace rejecting an
+// icon-less plugin is still the only thing enforcing those.
+//
+// `check` rather than `build` so `./gradlew check` covers them too; CI reaches them via `build`.
+tasks.named("check") {
+    dependsOn("verifyPluginProjectConfiguration", "verifyPluginStructure")
 }
 
 // A version counts as stable when it is nothing but digits and separators ("2025.2", "1.14.3") or

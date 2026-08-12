@@ -47,6 +47,17 @@ ZIP as an artifact. `release.yml` fires on a `MAJOR.MINOR.PATCH` tag (no `v` pre
 release convention) and refuses to publish if the tag disagrees with `version` in
 `gradle.properties` — otherwise a `1.0.1` release would ship a ZIP built as `1.0.0`.
 
+`release.yml` runs `./gradlew build` before anything else, and that step is load-bearing: neither
+`buildPlugin` nor `verifyPlugin` depends on `test`, so without it a tag could ship to the GitHub
+release *and* the Marketplace with the suite never run. A tag does not have to sit on a commit that
+was ever on a green `master`.
+
+`build.gradle.kts` attaches `verifyPluginProjectConfiguration` and `verifyPluginStructure` to
+`check`; the IntelliJ Platform plugin registers both and wires neither, so otherwise they never run.
+Treat them as diagnostics, not gates — both report and **neither fails the build**. In particular
+`verifyPluginStructure` does *not* notice a missing `META-INF/pluginIcon.svg` (measured, by deleting
+it), so nothing local protects the icons below.
+
 Runs are slow on a cold cache: the build downloads a full IntelliJ IDEA distribution, and
 `verifyPlugin` fetches its own IDEs on top of that. Both jobs cap at 45 minutes, and PR runs cancel
 their predecessors so a superseded commit does not hold a runner.
