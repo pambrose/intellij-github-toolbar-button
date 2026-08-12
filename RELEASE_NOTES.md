@@ -6,6 +6,14 @@
   Write the new section at the top before tagging. Everything below it is the published record of
   a release that has already gone out — leave it alone.
 
+  Two things in a section are NOT published, because GitHub supplies them itself:
+
+    - The `# v` heading. It is only how the section is found; the release page is already titled
+      `v<tag>`.
+    - A trailing `**Full Changelog**:` line. GitHub appends its own. Don't write one — and note
+      that the older sections below still carry theirs, because they are the published record and
+      are not edited. Copy one as a template and `release.yml` will drop that line for you.
+
   This is prose for humans reading a release page: what changed, and anything worth knowing before
   upgrading. It is NOT the source of the plugin's `changeNotes`, which are generated from
   CHANGELOG.md by the org.jetbrains.changelog plugin. GitHub appends its own generated commit list
