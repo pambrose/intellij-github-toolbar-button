@@ -8,6 +8,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Published
 
 ## [Unreleased]
 
+### Fixed
+
+- **Open Current Branch on GitHub** and **Open Pull Request for Current Branch** now open the name
+  the branch carries on its remote rather than its local name. The two differ whenever a branch was
+  created from, or pushed to, a differently named upstream — `git checkout -b fix origin/main`, or
+  `git push -u origin HEAD:release-2026` — and in those cases both actions were enabled and then
+  opened a page that does not exist.
+
 ## [1.1.0] - 2026-08-11
 
 ### Added

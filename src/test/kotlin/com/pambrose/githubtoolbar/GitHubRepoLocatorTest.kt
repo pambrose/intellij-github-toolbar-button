@@ -52,10 +52,14 @@ class GitHubRepoLocatorTest : StringSpec() {
     /**
      * A repository sitting on [branchName], tracking an upstream when [pushed]. Detached HEAD is
      * modelled by a null branch, which is what git4idea reports.
+     *
+     * [upstreamName] is the name the tracked branch carries on the server, which defaults to the
+     * local one but need not match it — `git checkout -b fix origin/main` leaves them different.
      */
     private fun repoOnBranch(
         branchName: String?,
         pushed: Boolean,
+        upstreamName: String? = branchName,
     ): GitRepository {
         val repository = repo("/project", remote("origin", "https://github.com/owner/repo.git"))
         val branch = branchName?.let { name ->
@@ -63,7 +67,14 @@ class GitHubRepoLocatorTest : StringSpec() {
         }
         every { repository.currentBranch } returns branch
         every { repository.getBranchTrackInfo(any()) } returns
-            if (pushed && branchName != null) mockk<GitBranchTrackInfo>() else null
+            if (pushed && branchName != null) {
+                mockk<GitBranchTrackInfo> {
+                    every { remoteBranch } returns
+                        mockk { every { nameForRemoteOperations } returns upstreamName.orEmpty() }
+                }
+            } else {
+                null
+            }
         return repository
     }
 
@@ -236,6 +247,14 @@ class GitHubRepoLocatorTest : StringSpec() {
 
         "reports the current branch once it tracks an upstream" {
             GitHubRepoLocator.pushedBranchOf(repoOnBranch("feature/x", pushed = true)) shouldBe "feature/x"
+        }
+
+        // `git checkout -b fix origin/main` tracks an upstream under a different name, and only the
+        // upstream's name exists on GitHub — `/tree/fix` would 404.
+        "reports the upstream's name when it differs from the local one" {
+            GitHubRepoLocator.pushedBranchOf(
+                repoOnBranch("fix", pushed = true, upstreamName = "main"),
+            ) shouldBe "main"
         }
 
         // A branch with no upstream has never been pushed, so every branch URL for it would 404.

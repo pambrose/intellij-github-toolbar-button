@@ -104,15 +104,19 @@ object GitHubRepoLocator {
             }
 
     /**
-     * The current branch of [repository], but only once it tracks an upstream.
+     * The name the current branch of [repository] has on its remote, but only once it tracks one.
      *
      * A branch with no upstream has never been pushed, so every branch-specific URL for it would
      * 404. Returning `null` here is what keeps those actions disabled rather than opening a dead
      * page. `null` also covers a detached HEAD, which git4idea reports as no current branch.
+     *
+     * The *upstream's* name is returned rather than the local one, because that is the name that
+     * exists on the server and the two need not match: `git checkout -b fix origin/main` and
+     * `git push -u origin HEAD:release-2026` both leave a local name that would 404 on GitHub.
      */
     fun pushedBranchOf(repository: GitRepository): String? {
         val branch = repository.currentBranch ?: return null
-        return branch.name.takeIf { repository.getBranchTrackInfo(it) != null }
+        return repository.getBranchTrackInfo(branch.name)?.remoteBranch?.nameForRemoteOperations
     }
 
     /** Explains, for a disabled branch action's tooltip, why no branch URL could be built. */
