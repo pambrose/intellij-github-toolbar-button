@@ -7,6 +7,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 An IntelliJ Platform plugin that adds a main-toolbar button opening the current project's GitHub
 repository page in the default browser. See `README.md` for user-facing behavior.
 
+Five documents at the root, each with a distinct job, and they are easy to confuse: `README.md` is
+for users, this file is for contributors and agents, `CHANGELOG.md` feeds the plugin's `changeNotes`,
+`RELEASE_NOTES.md` supplies the GitHub release bodies, and `llms.txt` is a machine-readable index —
+see the section below.
+
 ## Commands
 
 A `Makefile` wraps these (`make help` lists targets): `build`, `tests`, `test-one TEST=<class>`,
@@ -245,6 +250,23 @@ Release flow: bump `version` in `gradle.properties`, then `make patch-changelog`
 section and `patchChangelog` consumes the notes and writes nothing, silently losing them. `make
 patch-changelog` guards against exactly that; `./gradlew patchChangelog` does not. Note it stamps the
 local date, which can differ from the UTC date the releases page shows.
+
+## llms.txt
+
+`llms.txt` at the repository root follows the [llmstxt.org](https://llmstxt.org) convention: an H1
+name, a blockquote summary, then `##` sections of annotated markdown links. It exists so a model
+reading this repository cold gets the same orientation a contributor would, without having to infer
+it from a directory listing.
+
+Two rules keep it honest. **Every link points at a file that exists** — the entries are `blob/master`
+URLs, so a renamed or deleted source file leaves a 404 that nothing in the build will catch; check
+them when moving files. And **the annotations carry the constraint, not just the filename**: the
+value of the entry for `GitHubUrlParser` is that host matching is exact, not that the file is a
+parser. An index that only lists paths is one a model could have produced itself.
+
+It duplicates a little of `README.md` and this file by design, because it is read on its own. Keep
+the three consistent on the facts that appear in more than one — the supported floor, the build
+target, and which gate actually blocks a build.
 
 ## Architecture
 

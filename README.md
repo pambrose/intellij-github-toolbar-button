@@ -238,6 +238,10 @@ platform integration tests later would mean a separate source set that keeps it.
 Every pull request runs ktlint, the tests, a coverage check, and the IntelliJ Plugin Verifier, and
 lints the workflow files themselves with [actionlint](https://github.com/rhysd/actionlint) — the
 release workflow only runs on a tag, so nothing else would catch a mistake in it before a release.
+The verifier checks the plugin against the newest release of every supported IDE line — currently
+2025.2, 2025.3, 2026.1 and 2026.2 — rather than only the version it was compiled against. That set
+is pinned to released builds on purpose: unreleased branches of the platform fail on refactoring
+still in flight, which says nothing about this plugin.
 Formatting and workflow checks run first, so those failures come back in seconds rather than after a
 full IDE download. Tagging a release runs the whole build again, tests included, rather than trusting
 that the tagged commit is the one `master` last verified.

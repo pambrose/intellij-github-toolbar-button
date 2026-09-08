@@ -20,6 +20,30 @@
   below whichever section is published.
 -->
 
+# v1.2.1
+
+Maintenance. Nothing in the plugin's behaviour changes, and nothing is dropped — this is about which
+IDEs it is built and verified against.
+
+## Built against IntelliJ IDEA 2026.2.2
+
+Previous releases were compiled against 2025.2. This one moves to 2026.2.2, the current release of
+the unified IntelliJ IDEA distribution.
+
+**The minimum supported version is unchanged: 2025.2 (build 252).** If you are on 2025.2 or 2025.3,
+this release works exactly as the last one did.
+
+What you gain is that compatibility is now checked against *every released IDE line in the supported
+range* — 2025.2, 2025.3, 2026.1 and 2026.2 — rather than only against the single version the plugin
+happened to be compiled with. That check previously ran against one IDE; it now runs against four.
+
+## A note on Community vs Ultimate
+
+JetBrains stopped publishing IntelliJ IDEA Community as its own distribution after 2025.3. From
+2026.1 there is a single unified IDEA, so the README's requirement no longer reads "Community or
+Ultimate" as though it were a choice. Nothing about the plugin's licensing or availability changes:
+it remains free and Apache-2.0, and it installs the same way on whichever IDEA you run.
+
 # v1.2.0
 
 The commands are now on the menu bar, under **Git**. Everything else is where it was.
