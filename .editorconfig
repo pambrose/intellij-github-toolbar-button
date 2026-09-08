@@ -11,6 +11,10 @@ trim_trailing_whitespace = true
 [build.gradle]
 indent_size = 4
 
+# Override for Windows scripts, matching .gitattributes
+[*.bat]
+end_of_line = crlf
+
 # Override for Makefile
 [{Makefile, makefile}]
 indent_style = tab
