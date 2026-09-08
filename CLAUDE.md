@@ -28,9 +28,43 @@ Gradle tasks:
 
 `dependencyUpdates` (ben-manes Gradle Versions Plugin) filters out pre-release candidates via
 `isNonStable` in `build.gradle.kts`; drop that filter only if you actually want EAP/RC noise. It
-cannot resolve `idea:ideaIC` — the IntelliJ artifact repositories expose no metadata it can query,
+cannot resolve `idea:idea` — the IntelliJ artifact repositories expose no metadata it can query,
 so the `intellijIdea` catalog entry has to be bumped by hand. The `java-compiler-ant-tasks` line in
 the report tracks the same IDE branch and is a usable proxy for "a newer IDE line exists".
+
+**Read that proxy against the *release* feed, and do not read it as a version to copy.** It reports
+raw build numbers off `intellij-community` master, which include branches that have never shipped —
+it advertised `263.3889.91` while the release feeds carried no 263 build at all. `isNonStable`
+cannot filter these: it matches strings like `-RC`, and a bare build number carries no such marker.
+
+**When bumping, follow the unified line, not the Community feed.** IDEA Community stopped being
+published as its own artifact after **2025.3 (253)**, when JetBrains merged the two distributions,
+and `intellijIdeaCommunity(...)` fails outright past that point with `Couldn't resolve
+IntellijIdeaCommunity download URL`. `build.gradle.kts` uses `intellijIdea(...)` instead. The trap:
+the Community release feed (`data.services.jetbrains.com/products/releases?code=IIC`) still exists and
+still answers, frozen at 2025.3 — so "latest stable" read from it lands two release cycles
+behind. Ask `code=IIU`, which is the line that continued.
+
+Two things follow from building against a platform much newer than `since-build`, and both are
+intended:
+
+- `com.intellij.dvcs` left the monolithic platform jar in 2026.x. git4idea's `GitRepository` and
+  `GitRepositoryManager` extend types in it, so `build.gradle.kts` names
+  `intellij.platform.vcs.dvcs` and `intellij.platform.vcs.dvcs.impl` as `bundledModules`. Without
+  them the Kotlin compiler fails with `MISSING_DEPENDENCY_SUPERCLASS` on a supertype it cannot see.
+  This is a *compile classpath* fix only — both modules ship in every IDE and Git4Idea already
+  depends on them, so nothing changes at runtime or for older IDEs.
+- `verifyPluginProjectConfiguration` now always reports two "issues": that `since-build` (252) is
+  below the target platform major (262), and that Java 21 is below the platform's Java 25. **Both
+  recommendations must be declined.** Following either drops every user on 252–261 — the floor is
+  deliberate, the verifier proves it holds, and Java 21 bytecode is what lets the plugin load on
+  the JBR 21 IDEs. This is the reporter CLAUDE.md already describes as a diagnostic that never
+  fails the build; these two lines are permanent noise, not a regression.
+
+Because the compile target and the supported floor are now different numbers, the README's IntelliJ
+badge reads **"Built Against"** rather than a `<version>+` minimum. It still tracks
+`versions.intellijIdea` live, but that entry no longer answers "what is the oldest IDE this
+supports" — `sinceBuild` in `build.gradle.kts` does, and the Requirements section states it in prose.
 
 The Gradle wrapper is upgraded through the catalog: bump `gradle-wrapper` in
 `gradle/libs.versions.toml`, then `make upgrade-wrapper`, which runs `./gradlew wrapper` twice
@@ -59,6 +93,16 @@ was ever on a green `master`.
 Treat them as diagnostics, not gates — both report and **neither fails the build**. In particular
 `verifyPluginStructure` does *not* notice a missing `META-INF/pluginIcon.svg` (measured, by deleting
 it), so nothing local protects the icons below.
+
+`build.gradle.kts` pins the IDE set `verifyPlugin` checks, via `pluginVerification { ides { select
+{ ... } } }` filtered to `ProductRelease.Channel.RELEASE`. Do not drop this and go back to the
+default. The default set is derived from whatever the compile target implies, which is not stable:
+moving from `intellijIdeaCommunity` to the unified `intellijIdea` coordinate silently took it from
+one IDE to five and pulled in an unreleased 263 build, which fails on platform bytecode this plugin
+does not own (`com.intellij.dvcs.repo` unresolved from git4idea's own `GitRepository`) — reporting
+JetBrains' refactoring-in-flight as this plugin's incompatibility. `sinceBuild` is deliberately not
+repeated inside `select`: it defaults to `ideaVersion.sinceBuild`, so the floor stays written once.
+The pin currently resolves to the newest release of each branch from 252 up — 252, 253, 261, 262.
 
 Runs are slow on a cold cache: the build downloads a full IntelliJ IDEA distribution, and
 `verifyPlugin` fetches its own IDEs on top of that. Both jobs cap at 45 minutes, and PR runs cancel

@@ -1,5 +1,7 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import org.jetbrains.changelog.Changelog
+import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
+import org.jetbrains.intellij.platform.gradle.models.ProductRelease
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -21,9 +23,26 @@ repositories {
 
 dependencies {
     intellijPlatform {
-        intellijIdeaCommunity(libs.versions.intellijIdea)
+        // `intellijIdeaCommunity` up to 2025.2. IDEA Community stopped being published as its own
+        // artifact after 2025.3 (253), when JetBrains unified the distribution, and
+        // `intellijIdeaCommunity` simply fails to resolve past that point. `intellijIdea` is the
+        // unified coordinate the Gradle plugin directs you to. Consequence worth knowing when
+        // bumping: the Community release feed still exists and still stops at 2025.3, so reading
+        // "latest stable" off it lands nine months behind. The unified line is what to follow.
+        intellijIdea(libs.versions.intellijIdea)
         // Supplies GitRepositoryManager / GitRepository / GitRemote. Bundled in every IntelliJ IDE.
         bundledPlugin("Git4Idea")
+        // git4idea's own types extend `com.intellij.dvcs` ones — `GitRepository` extends
+        // `Repository`, `GitRepositoryManager` extends `AbstractRepositoryManager` — and 2026.x
+        // split that package out of the monolithic platform jar into these two modules. They ship
+        // in every IDE and Git4Idea depends on them, so this changes nothing at runtime; but the
+        // compile classpath now carries only what is declared, and without them the Kotlin compiler
+        // fails with MISSING_DEPENDENCY_SUPERCLASS on a supertype it cannot see. Splitting the two:
+        // the interfaces live in `.dvcs`, `AbstractRepositoryManager` in `.dvcs.impl`.
+        bundledModules(
+            "intellij.platform.vcs.dvcs",
+            "intellij.platform.vcs.dvcs.impl",
+        )
     }
 
     // No kotlin("test") here on purpose. Nothing imports from it, and it resolves to
@@ -58,6 +77,25 @@ intellijPlatform {
                         .withEmptySections(false),
                     Changelog.OutputType.HTML,
                 )
+            }
+        }
+    }
+
+    // Pin the set of IDEs the verifier checks. Without this it is derived from whatever the
+    // compile target implies, which is not stable: moving to the unified `intellijIdea` coordinate
+    // silently took it from one IDE to five and pulled in unreleased builds off the in-progress 263
+    // branch. Those fail on platform bytecode this plugin does not own — `com.intellij.dvcs.repo`
+    // unresolved from git4idea's own `GitRepository` — so including them reports JetBrains'
+    // refactoring-in-flight as this plugin's incompatibility. RELEASE channel only, so the gate
+    // means "shipped IDEs this plugin supports".
+    //
+    // `sinceBuild` is deliberately not repeated here: it defaults to the `ideaVersion.sinceBuild`
+    // set above, so the supported floor stays written in exactly one place.
+    pluginVerification {
+        ides {
+            select {
+                types = listOf(IntelliJPlatformType.IntellijIdea)
+                channels = listOf(ProductRelease.Channel.RELEASE)
             }
         }
     }
