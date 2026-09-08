@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.4.10"
+kotlin = "2.4.20"
 gradle-wrapper = "9.7.1"
 jvm = "21"
 intellijPlatformPlugin = "2.18.1"
