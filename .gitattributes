@@ -1,6 +1,10 @@
 #
-# https://help.github.com/articles/dealing-with-line-endings/
+# https://docs.github.com/en/get-started/git-basics/configuring-git-to-handle-line-endings
 #
+# Normalize all text files to LF in the repository, independent of each
+# contributor's core.autocrlf. The rules below override this.
+* text=auto
+
 # Linux start script should use lf
 /gradlew        text eol=lf
 
