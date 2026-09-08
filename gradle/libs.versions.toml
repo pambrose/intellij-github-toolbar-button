@@ -1,6 +1,6 @@
 [versions]
 kotlin = "2.4.10"
-gradle-wrapper = "9.7.0"
+gradle-wrapper = "9.7.1"
 jvm = "21"
 intellijPlatformPlugin = "2.18.1"
 # The IntelliJ IDEA Community build compiled and tested against.
