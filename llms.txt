@@ -1,0 +1,47 @@
+# GitHub Toolbar Button
+
+> An IntelliJ Platform plugin that adds a main-toolbar button opening the current project's GitHub
+> repository page in the default browser, plus commands for the repository's pull requests, issues,
+> actions, releases, current branch and pull-request-for-branch pages, and a copy-URL action.
+> Written in Kotlin, Apache-2.0, published on the JetBrains Marketplace as plugin 33486.
+
+Requires IntelliJ IDEA 2025.2 or later (build 252) with the bundled Git plugin enabled. Built
+against IDEA 2026.2.2 and verified against every released IDE line in the supported range.
+
+The non-trivial logic is deliberately free of IntelliJ dependencies so it stays directly
+unit-testable: URL normalization, destination construction and host allowlisting are pure Kotlin,
+while only the action layer touches the platform. Host matching against the allowlist is *exact* —
+that is what rejects lookalikes such as `evilgithub.com`; GitHub Enterprise is supported by widening
+the allowed-host set, never by loosening the comparison.
+
+## Documentation
+
+- [README](https://github.com/pambrose/intellij-github-toolbar-button/blob/master/README.md): what the plugin does, installation, usage, development commands, and CI overview
+- [CHANGELOG](https://github.com/pambrose/intellij-github-toolbar-button/blob/master/CHANGELOG.md): Keep a Changelog format; the section matching the built version becomes the plugin's `changeNotes`
+- [RELEASE_NOTES](https://github.com/pambrose/intellij-github-toolbar-button/blob/master/RELEASE_NOTES.md): hand-written prose bodies of the GitHub releases, newest first, one `# vMAJOR.MINOR.PATCH` section each
+- [CLAUDE.md](https://github.com/pambrose/intellij-github-toolbar-button/blob/master/CLAUDE.md): contributor and agent guidance — the reasoning behind the build, test, coverage and release configuration, including the traps that are easy to reintroduce
+- [LICENSE](https://github.com/pambrose/intellij-github-toolbar-button/blob/master/LICENSE): Apache License 2.0
+
+## Source
+
+- [GitHubUrlParser](https://github.com/pambrose/intellij-github-toolbar-button/blob/master/src/main/kotlin/com/pambrose/githubtoolbar/GitHubUrlParser.kt): pure Kotlin; normalizes any Git remote form (https, scp-style `git@`, `ssh://`, `git://`) to `https://host/owner/repo` and strips embedded credentials so tokens never reach the browser
+- [GitHubRepoLocator](https://github.com/pambrose/intellij-github-toolbar-button/blob/master/src/main/kotlin/com/pambrose/githubtoolbar/GitHubRepoLocator.kt): wraps git4idea; selects the Git root owning the current file (innermost wins), prefers the `origin` remote, and takes the allowed hosts as a parameter rather than reading settings
+- [GitHubDestination](https://github.com/pambrose/intellij-github-toolbar-button/blob/master/src/main/kotlin/com/pambrose/githubtoolbar/GitHubDestination.kt): enum of the non-branch pages the plugin can open
+- [GitHubBranchDestination](https://github.com/pambrose/intellij-github-toolbar-button/blob/master/src/main/kotlin/com/pambrose/githubtoolbar/GitHubBranchDestination.kt): enum of the branch pages; percent-encodes the branch but leaves `/` intact, since a slash is ordinary in a branch name and is also GitHub's path separator
+- [GitHubUrlAction](https://github.com/pambrose/intellij-github-toolbar-button/blob/master/src/main/kotlin/com/pambrose/githubtoolbar/GitHubUrlAction.kt): the base every URL-producing action extends, and the single place the enabled/visible/tooltip policy is written
+- [GitHubHostSettings](https://github.com/pambrose/intellij-github-toolbar-button/blob/master/src/main/kotlin/com/pambrose/githubtoolbar/GitHubHostSettings.kt): application-level persistent state holding extra GitHub Enterprise hosts; always unions in the defaults so a bad entry can fail to add a host but never remove github.com
+- [plugin.xml](https://github.com/pambrose/intellij-github-toolbar-button/blob/master/src/main/resources/META-INF/plugin.xml): action and group registration, including both toolbar IDs and the three menus the submenu is contributed to
+
+## Build and release
+
+- [build.gradle.kts](https://github.com/pambrose/intellij-github-toolbar-button/blob/master/build.gradle.kts): IntelliJ Platform Gradle Plugin setup, the test-task adjustments Kotest requires, Kover coverage bounds, and the pinned Plugin Verifier IDE set
+- [libs.versions.toml](https://github.com/pambrose/intellij-github-toolbar-button/blob/master/gradle/libs.versions.toml): version catalog; the IDEA entry is the build target, not the supported floor
+- [Makefile](https://github.com/pambrose/intellij-github-toolbar-button/blob/master/Makefile): `build`, `tests`, `check`, `verify`, `coverage`, `lint`, `format`, `versions`, `patch-changelog` — note the target is `tests`, not `test`
+- [build.yml](https://github.com/pambrose/intellij-github-toolbar-button/blob/master/.github/workflows/build.yml): CI on pushes to master and on pull requests
+- [release.yml](https://github.com/pambrose/intellij-github-toolbar-button/blob/master/.github/workflows/release.yml): fires on a `MAJOR.MINOR.PATCH` tag with no `v` prefix; refuses to publish if the tag disagrees with `gradle.properties`
+
+## Optional
+
+- [Marketplace listing](https://plugins.jetbrains.com/plugin/33486-github-toolbar-button): the published plugin, installable from inside the IDE
+- [Releases](https://github.com/pambrose/intellij-github-toolbar-button/releases): packaged ZIPs and release notes
+- [Coverage](https://codecov.io/gh/pambrose/intellij-github-toolbar-button): Codecov reports; note it annotates pull requests but cannot block them, since `koverVerify` is the actual gate

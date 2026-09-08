@@ -8,6 +8,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Published
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-09-07
+
+### Changed
+
+- The plugin is now built against IntelliJ IDEA 2026.2.2, and its compatibility is checked against
+  every released IDE line from 2025.2 through 2026.2 rather than against the single version it was
+  compiled with. The minimum supported version is unchanged — 2025.2, build 252 — so this adds
+  assurance on newer IDEs without dropping any older one.
+- JetBrains stopped publishing IntelliJ IDEA Community as a separate distribution after 2025.3;
+  from 2026.1 there is a single unified IDEA. The **Requirements** section in the README notes this,
+  since "Community or Ultimate" no longer describes a choice anyone makes.
+
 ## [1.2.0] - 2026-08-12
 
 ### Added
@@ -111,7 +123,8 @@ First release.
 - CI covering build, tests, and the IntelliJ Plugin Verifier, plus tag-driven release automation that
   refuses to publish when the tag disagrees with the version in `gradle.properties`.
 
-[Unreleased]: https://github.com/pambrose/intellij-github-toolbar-button/compare/1.2.0...HEAD
+[Unreleased]: https://github.com/pambrose/intellij-github-toolbar-button/compare/1.2.1...HEAD
+[1.2.1]: https://github.com/pambrose/intellij-github-toolbar-button/compare/1.2.0...1.2.1
 [1.2.0]: https://github.com/pambrose/intellij-github-toolbar-button/compare/1.1.1...1.2.0
 [1.1.1]: https://github.com/pambrose/intellij-github-toolbar-button/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/pambrose/intellij-github-toolbar-button/compare/1.0.0...1.1.0
