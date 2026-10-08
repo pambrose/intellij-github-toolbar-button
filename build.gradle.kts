@@ -155,12 +155,6 @@ tasks.test {
     systemProperty("kotest.framework.classpath.scanning.config.disable", "true")
     systemProperty("kotest.framework.classpath.scanning.autoscan.disable", "true")
 
-    // The platform's testFramework.jar registers a JUnit Platform LauncherSessionListener
-    // (JUnit5TestEnvironmentInitializer) that needs JUnit 4 on the classpath. Gradle 9.7 opens a
-    // launcher session, so that listener now runs and dies with NoClassDefFoundError:
-    // org/junit/rules/TestRule. These tests never boot an IDE, so drop the jar.
-    classpath = classpath.filter { it.name != "testFramework.jar" }
-
     maxHeapSize = "1g"
 
     testLogging {
