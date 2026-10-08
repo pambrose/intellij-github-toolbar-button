@@ -398,22 +398,25 @@ run widget* and `last` means right of the settings gear.
 
 ## Test task configuration
 
-`tasks.test` removes the IntelliJ Platform plugin's `IntelliJPlatformArgumentProvider`, drops
-`testFramework.jar` from the classpath, and disables Kotest classpath scanning. All three are
-load-bearing — removing any one breaks the suite:
+`tasks.test` removes the IntelliJ Platform plugin's `IntelliJPlatformArgumentProvider` and disables
+Kotest classpath scanning. Both are load-bearing — removing either one breaks the suite:
 
 - The provider forces `-Djava.system.class.loader=com.intellij.util.lang.PathClassLoader`, which
   Kotest's ClassGraph discovery cannot traverse (`TestEngine with ID 'kotest' failed to discover
   tests`).
-- The platform's `testFramework.jar` registers a JUnit Platform `LauncherSessionListener`
-  (`JUnit5TestEnvironmentInitializer`) that requires JUnit 4. Gradle 9.7 opens a launcher session,
-  so the listener runs and the worker dies before any test does (`Could not start Gradle Test
-  Executor`, `NoClassDefFoundError: org/junit/rules/TestRule`). Gradle 9.6 did not hit this.
 - Kotest's autoscan walks the entire platform classpath and exhausts the heap
   (`OutOfMemoryError` inside ClassGraph).
 
 These are plain unit tests that never boot an IDE. Platform integration tests would need their own
 source set that keeps the provider.
+
+There used to be a third adjustment, filtering `testFramework.jar` off the classpath, and it was
+removed in 1.2.2 because it had stopped matching anything. That jar registers a JUnit Platform
+`LauncherSessionListener` (`JUnit5TestEnvironmentInitializer`) that needs JUnit 4, and from Gradle
+9.7 the listener runs and kills the worker before any test does (`Could not start Gradle Test
+Executor`, `NoClassDefFoundError: org/junit/rules/TestRule`). The Community 2025.2 distribution
+shipped it as `lib/testFramework.jar`; the unified 2026.2.x distributions do not, so the filter has
+been a no-op since the build target moved. If that error ever comes back, this is the cause.
 
 ## Coverage
 
@@ -423,10 +426,12 @@ no wiring of our own. **Unlike `verifyPluginStructure` above, this one really do
 raising the bound above the actual figure exits 1 with `Rule violated: lines covered percentage
 is …`.
 
-**Pin `kover` by hand, and do not trust `dependencyUpdates` here.** It reads Maven Central, which
-still advertises **0.9.1** as newest; 0.9.1 cannot configure against Kotlin 2.4 at all, failing with
-`Could not get unknown property 'compileKotlinTask'`. The Gradle Plugin Portal carries the newer
-line, and **0.9.9** is what works.
+**Never take `kover` below 0.9.9**, the oldest version known to work here. 0.9.1 cannot configure
+against Kotlin 2.4 at all, failing with `Could not get unknown property 'compileKotlinTask'`. That
+used to be a trap: Maven Central's metadata advertised 0.9.1 as newest while the Gradle Plugin
+Portal carried the working line, so `dependencyUpdates` pointed the wrong way. Central has since
+caught up — both repositories list **0.9.11**, which is what the build uses, and `dependencyUpdates`
+now reports Kover correctly. If the two ever diverge again, believe the Plugin Portal.
 
 Coverage is measured over the layer the unit suite can reach. The exclusion patterns in
 `build.gradle.kts` drop the action, group and configurable classes, which need a running

@@ -1,21 +1,21 @@
 [versions]
-kotlin = "2.4.20"
-gradle-wrapper = "9.7.1"
+kotlin = "2.4.21"
+gradle-wrapper = "9.8.1"
 jvm = "21"
-intellijPlatformPlugin = "2.18.1"
+intellijPlatformPlugin = "2.19.0"
 # The IntelliJ IDEA build compiled and tested against — the *unified* distribution, which is all
 # JetBrains publishes after 2025.3. This is the build target, not the supported floor: that is
 # `sinceBuild` in build.gradle.kts. See CLAUDE.md before bumping; the Community release feed is
 # frozen and will mislead you.
-intellijIdea = "2026.2.2"
-kotest = "6.2.4"
+intellijIdea = "2026.2.3"
+kotest = "6.2.5"
 mockk = "1.14.11"
-benManesVersions = "0.61.0"
+benManesVersions = "0.65.0"
 changelog = "2.5.0"
 kotlinter = "5.7.0"
-# 0.9.9, not the 0.9.1 that Maven Central still reports as newest: 0.9.1 cannot build against
-# Kotlin 2.4 — it reads `compileKotlinTask`, which that version of the Kotlin plugin removed.
-kover = "0.9.9"
+# Never below 0.9.9, the oldest version known to work here: 0.9.1 cannot build against Kotlin 2.4 —
+# it reads `compileKotlinTask`, which that version of the Kotlin plugin removed.
+kover = "0.9.11"
 
 [libraries]
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }

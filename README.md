@@ -218,15 +218,12 @@ with:
 
 ### A note on the test task
 
-`build.gradle.kts` makes three changes to the `test` task. All are required — drop any one and the
+`build.gradle.kts` makes two changes to the `test` task. Both are required — drop either one and the
 suite stops running:
 
 - It removes the IntelliJ Platform plugin's `IntelliJPlatformArgumentProvider`, which forces
   `-Djava.system.class.loader=com.intellij.util.lang.PathClassLoader` onto the test JVM. Kotest's
   ClassGraph-based discovery cannot traverse that loader.
-- It drops the platform's `testFramework.jar` from the test classpath. That jar registers a JUnit
-  Platform `LauncherSessionListener` that needs JUnit 4, and Gradle 9.7 opens a launcher session, so
-  the listener runs and the test worker dies before a single test does.
 - It disables Kotest's classpath scanning, which otherwise walks the entire platform classpath and
   exhausts the test JVM heap.
 
