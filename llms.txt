@@ -6,7 +6,7 @@
 > Written in Kotlin, Apache-2.0, published on the JetBrains Marketplace as plugin 33486.
 
 Requires IntelliJ IDEA 2025.2 or later (build 252) with the bundled Git plugin enabled. Built
-against IDEA 2026.2.2 and verified against every released IDE line in the supported range.
+against IDEA 2026.2.3 and verified against every released IDE line in the supported range.
 
 The non-trivial logic is deliberately free of IntelliJ dependencies so it stays directly
 unit-testable: URL normalization, destination construction and host allowlisting are pure Kotlin,
