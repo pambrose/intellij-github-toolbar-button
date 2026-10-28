@@ -1,6 +1,6 @@
 [versions]
 kotlin = "2.4.21"
-gradle-wrapper = "9.8.1"
+gradle-wrapper = "9.8.2"
 jvm = "21"
 intellijPlatformPlugin = "2.19.0"
 # The IntelliJ IDEA build compiled and tested against — the *unified* distribution, which is all
@@ -8,9 +8,9 @@ intellijPlatformPlugin = "2.19.0"
 # `sinceBuild` in build.gradle.kts. See CLAUDE.md before bumping; the Community release feed is
 # frozen and will mislead you.
 intellijIdea = "2026.2.3"
-kotest = "6.2.5"
+kotest = "6.2.6"
 mockk = "1.14.11"
-benManesVersions = "0.65.0"
+benManesVersions = "0.66.0"
 changelog = "2.5.0"
 kotlinter = "5.7.0"
 # Never below 0.9.9, the oldest version known to work here: 0.9.1 cannot build against Kotlin 2.4 —
