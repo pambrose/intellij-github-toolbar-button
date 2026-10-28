@@ -128,6 +128,28 @@ a third-party action or an install script piped into a shell, which would underc
 SHA-pinning every `uses:` above it. Bumping the version means bumping the checksum with it; both
 live in that step's `env`.
 
+### Pruning old runs
+
+`prune-runs.yml` runs weekly (and on demand) and deletes completed workflow runs older than 30 days,
+which takes their logs and artifacts with them. GitHub's own retention setting is not a substitute:
+it is 90 days here, it expires logs and artifacts but leaves every run listed, and it lives in the
+repository settings rather than in a file anyone reviews. A manual run takes a `days` input.
+
+**The newest completed run of each workflow on the default branch is always kept**, however old. The
+README's Build badge reads that run, so deleting it during a month with no push to `master` would
+blank the badge. Release runs are not protected by this: a tag push records the tag, not `master`, as
+its branch, so they age out like everything else — the release and the Marketplace listing are the
+record of what shipped.
+
+It lists runs *unfiltered* and selects in `jq`, rather than asking the API for `status=completed` and
+`created=<…`: either of those parameters caps the listing at 1,000 runs. It also collects every id
+before deleting any, since deleting while paginating shifts pages under the cursor and skips runs. It
+uses only the `gh` and `jq` already on the runner, so there is no third-party action to pin, and it
+needs `actions: write` — the only workflow here that does.
+
+GitHub disables a scheduled workflow in a public repository after 60 days with no repository
+activity. If pruning silently stops, check whether it has been disabled before suspecting the script.
+
 ### Coverage reporting
 
 `build.yml` renders Kover's XML report and uploads it to Codecov. Opt-in on `CODECOV_TOKEN`,

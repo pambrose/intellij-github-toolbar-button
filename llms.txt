@@ -39,6 +39,7 @@ the allowed-host set, never by loosening the comparison.
 - [Makefile](https://github.com/pambrose/intellij-github-toolbar-button/blob/master/Makefile): `build`, `tests`, `check`, `verify`, `coverage`, `lint`, `format`, `versions`, `patch-changelog` — note the target is `tests`, not `test`
 - [build.yml](https://github.com/pambrose/intellij-github-toolbar-button/blob/master/.github/workflows/build.yml): CI on pushes to master and on pull requests
 - [release.yml](https://github.com/pambrose/intellij-github-toolbar-button/blob/master/.github/workflows/release.yml): fires on a `MAJOR.MINOR.PATCH` tag with no `v` prefix; refuses to publish if the tag disagrees with `gradle.properties`
+- [prune-runs.yml](https://github.com/pambrose/intellij-github-toolbar-button/blob/master/.github/workflows/prune-runs.yml): weekly; deletes completed runs older than 30 days, with their logs and artifacts, but always keeps each workflow's newest default-branch run, which the Build badge reads
 
 ## Optional
 
