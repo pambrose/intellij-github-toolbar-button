@@ -1,0 +1,65 @@
+name: Prune workflow runs
+
+# Deletes completed workflow runs, and with them their logs and artifacts, once they are older than
+# the retention window. GitHub's own retention setting (90 days here) expires logs and artifacts but
+# leaves every run listed, and it lives in the repository settings, where nothing reviews it.
+on:
+  schedule:
+    # Off the hour: scheduled runs queued at :00 are the ones GitHub delays or drops under load.
+    - cron: '23 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      days:
+        description: Delete completed runs created more than this many days ago
+        type: number
+        default: 30
+
+permissions:
+  actions: write
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  prune:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      # The gh CLI and jq already on the runner do the work, so there is no third-party action to pin.
+      # The input reaches the script through the environment, never interpolated into it.
+      #
+      # The newest completed run of each workflow on the default branch is always kept, however old:
+      # the README's Build badge reads that run, and deleting it during a quiet month blanks the badge.
+      - name: Delete runs older than the retention window
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          DAYS: ${{ inputs.days || 30 }}
+        run: |
+          if ! [[ "$DAYS" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::days must be a positive whole number, got '$DAYS'"
+            exit 1
+          fi
+          cutoff="$(date -u -d "${DAYS} days ago" +%Y-%m-%dT%H:%M:%SZ)"
+          default_branch="$(gh api "repos/${GH_REPO}" --jq .default_branch)"
+
+          # Unfiltered on purpose: the `status` and `created` query parameters cap a listing at
+          # 1,000 runs. Every id is collected before any is deleted, because deleting while
+          # paginating shifts the pages under the cursor and skips runs.
+          gh api --paginate "repos/${GH_REPO}/actions/runs?per_page=100" \
+            --jq '.workflow_runs[] | {id, workflow_id, head_branch, status, created_at}' |
+            jq -rs --arg cutoff "$cutoff" --arg branch "$default_branch" '
+              map(select(.status == "completed")) as $runs
+              | [$runs[] | select(.head_branch == $branch)]
+                | group_by(.workflow_id) | map(max_by(.created_at).id) as $keep
+              | $runs[]
+              | select(.created_at < $cutoff)
+              | select(.id as $id | $keep | any(. == $id) | not)
+              | .id' > run-ids.txt
+
+          echo "Deleting $(wc -l < run-ids.txt) completed runs created before ${cutoff}"
+          while read -r id; do
+            gh api --silent -X DELETE "repos/${GH_REPO}/actions/runs/${id}"
+          done < run-ids.txt

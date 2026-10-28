@@ -241,7 +241,9 @@ is pinned to released builds on purpose: unreleased branches of the platform fai
 still in flight, which says nothing about this plugin.
 Formatting and workflow checks run first, so those failures come back in seconds rather than after a
 full IDE download. Tagging a release runs the whole build again, tests included, rather than trusting
-that the tagged commit is the one `master` last verified.
+that the tagged commit is the one `master` last verified. A weekly job deletes workflow runs older
+than 30 days, with their logs and artifacts, keeping the latest `master` run of each workflow so the
+Build badge always has one to report.
 
 Coverage is measured by [Kover](https://github.com/Kotlin/kotlinx-kover) over the layer these unit
 tests can reach — the parser, the destinations, the locator and the settings — and `koverVerify`

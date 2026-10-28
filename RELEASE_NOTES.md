@@ -20,6 +20,26 @@
   below whichever section is published.
 -->
 
+# v1.2.3
+
+Maintenance. Nothing in the plugin's behaviour or settings changes, and it is still built against
+IntelliJ IDEA 2026.2.3; this release only moves the tooling around it.
+
+## What stays the same
+
+The minimum supported version is still IntelliJ IDEA 2025.2 (build 252), and the plugin is still
+verified against the newest release of every supported IDE line — 2025.2, 2025.3, 2026.1 and
+2026.2. If 1.2.2 works for you, this release will too.
+
+## What changed
+
+The plugin is now packaged with Gradle 9.8.2, up from 9.8.1.
+
+On the development side only — none of these reach the packaged plugin — Kotest moves to 6.2.6 and
+the Gradle Versions Plugin to 0.66.0. The actions CI runs on are current (`actions/setup-java`
+6.0.1, `codecov/codecov-action` 7.1.1, and `gradle/actions` 6.4.0), and a new weekly workflow
+deletes runs older than 30 days, along with their logs and artifacts.
+
 # v1.2.2
 
 Maintenance. Nothing in the plugin's behaviour or settings changes; this release rebuilds it against
