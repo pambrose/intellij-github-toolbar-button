@@ -107,7 +107,15 @@ one IDE to five and pulled in an unreleased 263 build, which fails on platform b
 does not own (`com.intellij.dvcs.repo` unresolved from git4idea's own `GitRepository`) — reporting
 JetBrains' refactoring-in-flight as this plugin's incompatibility. `sinceBuild` is deliberately not
 repeated inside `select`: it defaults to `ideaVersion.sinceBuild`, so the floor stays written once.
-The pin currently resolves to the newest release of each branch from 252 up — 252, 253, 261, 262.
+The pin currently resolves to the newest release of each branch from 252 up — 252, 253, 261, 262,
+263.
+
+**A local `verifyPlugin` on macOS can fail where CI passes.** Since 2026.3 shipped, a local run has
+reported exactly the `com.intellij.dvcs.repo` problem above against the *released* IU-263.7307.200,
+while CI's Linux run with the same verifier (1.411) and the same IDE build reports the plugin
+compatible. CI found it so under IntelliJ Platform Gradle Plugin 2.19.0 and 2.20.1 alike; the local
+failure was seen with 2.20.1. CI is the gate. A local-only failure of that shape is not a
+regression, though one in CI would be.
 
 Runs are slow on a cold cache: the build downloads a full IntelliJ IDEA distribution, and
 `verifyPlugin` fetches its own IDEs on top of that. Both jobs cap at 45 minutes, and PR runs cancel

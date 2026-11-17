@@ -14,8 +14,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Published
 
 - The plugin is now packaged with Gradle 9.8.2 and the IntelliJ Platform Gradle Plugin 2.20.1. It
   is still built against IntelliJ IDEA 2026.2.3, and nothing in its behaviour or settings changes,
-  nor does the supported range: it still requires IntelliJ IDEA 2025.2 (build 252) or later, and is
-  still verified against every released IDE line from 2025.2 through 2026.2.
+  nor does the supported range: it still requires IntelliJ IDEA 2025.2 (build 252) or later. It is
+  now also verified against IntelliJ IDEA 2026.3, released since 1.2.2, so every released IDE line
+  from 2025.2 through 2026.3 is checked.
 
 ## [1.2.2] - 2026-10-08
 
