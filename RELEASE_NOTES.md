@@ -33,12 +33,16 @@ verified against the newest release of every supported IDE line — 2025.2, 2025
 
 ## What changed
 
-The plugin is now packaged with Gradle 9.8.2, up from 9.8.1.
+The plugin is now packaged with Gradle 9.8.2, up from 9.8.1, and the IntelliJ Platform Gradle Plugin
+2.20.1, up from 2.19.0.
 
-On the development side only — none of these reach the packaged plugin — Kotest moves to 6.2.6 and
-the Gradle Versions Plugin to 0.66.0. The actions CI runs on are current (`actions/setup-java`
-6.0.1, `codecov/codecov-action` 7.1.1, and `gradle/actions` 6.4.0), and a new weekly workflow
-deletes runs older than 30 days, along with their logs and artifacts.
+On the development side only — none of these reach the packaged plugin — Kotest moves to 6.2.7,
+MockK to 1.14.12, and the Gradle Versions Plugin to 0.67.0. The actions CI runs on are current
+(`actions/setup-java` 6.0.1, `codecov/codecov-action` 7.1.1, and `gradle/actions` 6.4.0), and a new
+weekly workflow deletes runs older than 30 days, along with their logs and artifacts.
+
+Dependabot now watches the Gradle dependencies as well as the actions, grouping minor and patch bumps
+into one weekly pull request per ecosystem. Every one is still reviewed and merged by hand.
 
 # v1.2.2
 
