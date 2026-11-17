@@ -115,7 +115,9 @@ reported exactly the `com.intellij.dvcs.repo` problem above against the *release
 while CI's Linux run with the same verifier (1.411) and the same IDE build reports the plugin
 compatible. CI found it so under IntelliJ Platform Gradle Plugin 2.19.0 and 2.20.1 alike; the local
 failure was seen with 2.20.1. CI is the gate. A local-only failure of that shape is not a
-regression, though one in CI would be.
+regression, though one in CI would be. `make check` runs `verifyPlugin` too, so on macOS it now ends
+in that failure even when lint, the tests and `koverVerify` have all passed; read the verifier's
+per-IDE verdicts before concluding anything is broken.
 
 Runs are slow on a cold cache: the build downloads a full IntelliJ IDEA distribution, and
 `verifyPlugin` fetches its own IDEs on top of that. Both jobs cap at 45 minutes, and PR runs cancel

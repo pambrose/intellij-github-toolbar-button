@@ -12,7 +12,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Published
 
 ### Changed
 
-- The plugin is now packaged with Gradle 9.8.2 and the IntelliJ Platform Gradle Plugin 2.20.1. It
+- The plugin is now packaged with Gradle 9.9.1 and the IntelliJ Platform Gradle Plugin 2.20.1. It
   is still built against IntelliJ IDEA 2026.2.3, and nothing in its behaviour or settings changes,
   nor does the supported range: it still requires IntelliJ IDEA 2025.2 (build 252) or later. It is
   now also verified against IntelliJ IDEA 2026.3, released since 1.2.2, so every released IDE line

@@ -1,6 +1,6 @@
 [versions]
 kotlin = "2.4.21"
-gradle-wrapper = "9.8.2"
+gradle-wrapper = "9.9.1"
 jvm = "21"
 intellijPlatformPlugin = "2.20.1"
 # The IntelliJ IDEA build compiled and tested against — the *unified* distribution, which is all
