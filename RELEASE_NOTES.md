@@ -34,8 +34,8 @@ too.
 
 ## What changed
 
-The plugin is now packaged with Gradle 9.8.2, up from 9.8.1, and the IntelliJ Platform Gradle Plugin
-2.20.1, up from 2.19.0.
+The plugin is now packaged with Gradle 9.9.1, up from 9.8.1, and the IntelliJ Platform Gradle Plugin
+2.20.1, up from 2.19.0. The Gradle wrapper, `gradle-wrapper.jar` included, is regenerated to match.
 
 On the development side only — none of these reach the packaged plugin — Kotest moves to 6.2.7,
 MockK to 1.14.12, and the Gradle Versions Plugin to 0.67.0. The actions CI runs on are current
@@ -44,7 +44,8 @@ MockK to 1.14.12, and the Gradle Versions Plugin to 0.67.0. The actions CI runs 
 runs older than 30 days, along with their logs and artifacts.
 
 Dependabot now watches the Gradle dependencies as well as the actions, grouping minor and patch bumps
-into one weekly pull request per ecosystem. Every one is still reviewed and merged by hand.
+into one weekly pull request per ecosystem and holding back any release less than a week old. Every
+one is still reviewed and merged by hand. Dependabot security updates are now on as well.
 
 # v1.2.2
 
