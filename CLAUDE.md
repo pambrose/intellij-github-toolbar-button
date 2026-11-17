@@ -119,7 +119,7 @@ mutable `@v6` tag can be repointed at new code, and `release.yml` holds `content
 
 `release.yml` only ever runs on a tag, so nothing else exercises it between releases and a mistake in
 it surfaces at the worst moment. `build.yml` therefore runs
-[actionlint](https://github.com/rhysd/actionlint) over both workflows on every PR. It already caught
+[actionlint](https://github.com/rhysd/actionlint) over every workflow on every PR. It already caught
 one bug here — the `secrets` context is **not** available in a step-level `if`, which is why
 credential presence is turned into a step *output* and tested through that instead.
 
@@ -127,6 +127,45 @@ actionlint is downloaded by pinned version and checked against a SHA-256 rather 
 a third-party action or an install script piped into a shell, which would undercut the point of
 SHA-pinning every `uses:` above it. Bumping the version means bumping the checksum with it; both
 live in that step's `env`.
+
+### Dependabot
+
+`.github/dependabot.yml` watches two ecosystems weekly: GitHub Actions, and the `[libraries]` and
+`[plugins]` of the version catalog. Minor and patch bumps arrive grouped, one PR per ecosystem.
+Majors arrive one per PR, so a breaking upgrade is never buried in a batch. Any release younger than
+seven days is held back (`cooldown`): reading a version bump's diff cannot catch a bad or hijacked
+upstream release, and a week is time for one to be yanked before it is proposed. Security updates
+bypass the cooldown.
+
+**Dependabot PRs are merged by hand, never automatically.** That is a decision, not a gap: don't add
+an auto-merge workflow, and leave the repository's **Allow auto-merge** setting off. The required
+`build` check still runs on every Dependabot PR, so a bump that breaks the tests, the coverage bound
+or the Plugin Verifier shows red before anyone reviews it.
+
+Because branch protection requires an up-to-date branch, merging one Dependabot PR leaves any other
+open one behind `master`. Dependabot does not rebase a PR for merely falling behind, only for a
+conflict or on its next scheduled run. Comment `@dependabot rebase` rather than pressing **Update
+branch**: Dependabot stops maintaining a PR once anyone else pushes to it.
+
+Some things are deliberately not Dependabot's job:
+
+- **The Gradle wrapper.** Dependabot can update it, but it never touches the catalog's
+  `gradle-wrapper` entry, so every such PR would fail `make check-wrapper`. It is in `ignore:`, and
+  wrapper upgrades stay manual: bump the catalog, then `make upgrade-wrapper`.
+- **The bare `[versions]`** (`intellijIdea`, `jvm`, `gradle-wrapper`). Dependabot only follows a
+  version that a library or plugin references, so it cannot see these. `make versions` overlaps with
+  Dependabot on everything else but stays, because its `java-compiler-ant-tasks` line is the hint that
+  a newer IDE line exists.
+- **Gradle security updates.** Dependabot security updates are on (a repository setting, not a
+  file), but for Gradle they need a dependency graph uploaded through the Dependency Submission API,
+  and none is uploaded here. The graph shows only the Actions. That is deliberate. The plugin
+  bundles no third-party library: the IDE supplies everything at runtime, so the only Maven artifacts
+  are Kotest and MockK, which are test-only and never shipped, and the version updates above keep them
+  current anyway. If the plugin ever bundles a library, add `gradle/actions/dependency-submission`.
+
+Dependabot-triggered runs get *Dependabot* secrets, not Actions secrets, so `CODECOV_TOKEN` is absent
+from them and `build.yml` skips the Codecov upload on Dependabot PRs. That is the opt-in step working
+as designed, not a fault. Add the token as a Dependabot secret if those PRs should report coverage.
 
 ### Pruning old runs
 
@@ -483,9 +522,9 @@ The uncovered remainder inside the measured layer is exactly the platform bounda
   build script silently overrides the property, so don't reintroduce one.
 - `gradle/libs.versions.toml` also holds two versions Gradle never resolves as dependencies —
   `jvm` (read by `jvmToolchain`) and `gradle-wrapper` (read only by the Makefile's `sed`). Neither
-  appears in `dependencyUpdates`. The README's version badges read this file live over
-  `raw.githubusercontent.com` (shields.io `dynamic/toml`), so renaming a key silently breaks a
-  badge — but no badge can fall out of date.
+  appears in `dependencyUpdates` or in Dependabot's PRs. The README's version badges read this file
+  live over `raw.githubusercontent.com` (shields.io `dynamic/toml`), so renaming a key silently
+  breaks a badge — but no badge can fall out of date.
 - `since-build` is `252` with an open-ended `until-build`.
 - Every `.kt` file opens with the Apache 2.0 header (the boilerplate from the `LICENSE` appendix,
   verbatim) before the `package` line; new sources need it too. The `.kts` build scripts do not

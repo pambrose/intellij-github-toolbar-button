@@ -245,6 +245,10 @@ that the tagged commit is the one `master` last verified. A weekly job deletes w
 than 30 days, with their logs and artifacts, keeping the latest `master` run of each workflow so the
 Build badge always has one to report.
 
+[Dependabot](https://docs.github.com/en/code-security/dependabot) keeps the GitHub Actions and the
+Gradle version catalog current, with weekly PRs that group minor and patch bumps; majors arrive one
+per PR. They run the same checks as any other change, and every one is reviewed and merged by hand.
+
 Coverage is measured by [Kover](https://github.com/Kotlin/kotlinx-kover) over the layer these unit
 tests can reach — the parser, the destinations, the locator and the settings — and `koverVerify`
 fails the build if it drops. The action and UI classes are excluded, because exercising them needs a

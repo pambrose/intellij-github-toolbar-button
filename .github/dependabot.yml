@@ -1,16 +1,50 @@
 version: 2
 
+# Every Dependabot PR is merged by hand, after review. Nothing here merges on its own, and that is
+# deliberate: don't add an auto-merge workflow.
+#
+# Minor and patch bumps are grouped into one PR per ecosystem each week; majors still arrive one per
+# PR, so a breaking upgrade is never buried in a batch.
+#
+# `cooldown` holds back any release younger than a week. Reading a version bump's diff cannot catch a
+# bad or hijacked upstream release, so the week is time for one to be noticed and yanked before it is
+# proposed. It applies to version updates only: security updates are never delayed.
+
 updates:
-  # Only the actions themselves. Gradle dependencies are deliberately left out:
-  # `make versions` (ben-manes) already reports those, and the two would duplicate
-  # each other. The catalog's `jvm` and `gradle-wrapper` entries are invisible to
-  # both, so they still need bumping by hand.
-  #
-  # This is what keeps the SHA-pinned `uses:` refs in the workflows current —
-  # Dependabot rewrites the SHA and the trailing `# vX.Y.Z` comment together.
+  # Keeps the SHA-pinned `uses:` refs in the workflows current. Dependabot rewrites the SHA and the
+  # trailing `# vX.Y.Z` comment together.
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]
+        update-types: [minor, patch]
     commit-message:
       prefix: ci
+
+  # The [libraries] and [plugins] in gradle/libs.versions.toml. Dependabot only follows a version a
+  # library or plugin references, so the bare [versions] entries (`intellijIdea`, `jvm` and
+  # `gradle-wrapper`) are invisible to it and still get bumped by hand. `make versions` overlaps with
+  # this for the libraries and plugins, but stays: its `java-compiler-ant-tasks` line is the hint that
+  # a newer IDE line exists, and it reports new Gradle releases.
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      gradle:
+        patterns: ["*"]
+        update-types: [minor, patch]
+    # Dependabot can update the wrapper, but it does not touch the catalog's `gradle-wrapper` entry,
+    # so every such PR would fail `make check-wrapper` in CI. Wrapper upgrades stay manual: bump the
+    # catalog, then `make upgrade-wrapper`.
+    ignore:
+      - dependency-name: gradle-wrapper
+    commit-message:
+      prefix: build
